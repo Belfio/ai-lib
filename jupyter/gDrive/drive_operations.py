@@ -46,3 +46,27 @@ class DriveOperations:
         print("Files:")
         for item in files:
             print(f"{item['name']} ({item['id']})") 
+    
+    def get_file_by_id(self, file_id):
+        """Gets a file by its ID.
+        
+        Args:
+            file_id: The ID of the file to get
+        """
+        return self.service.files().get(fileId=file_id).execute()
+    
+    def folder_content(self, folder_id):
+        """Gets the content of a folder by its ID.
+        
+        Args:
+            folder_id: The ID of the folder to get the content of
+        """
+        return self.service.files().list(pageSize=200, fields="nextPageToken, files(id, name)", q=f"parents in '{folder_id}'").execute()
+    
+    def is_folder(self, file_id):
+        """Checks if a file is a folder.
+        
+        Args:
+            file_id: The ID of the file to check
+        """
+        return self.get_file_by_id(file_id)["mimeType"] == "application/vnd.google-apps.folder"
