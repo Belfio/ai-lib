@@ -3,3 +3,15 @@ node_modules
 /.cache
 /build
 .env
+
+.sst/
+.sst
+__pycache__/
+__pycache__
+
+*/__pycache__/
+*/*/__pycache__
+venv/
+
+token.json
+credentials.json
