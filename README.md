@@ -1,39 +1,74 @@
-# ai
+# MVP 1 - Email to Attio
 
-##
+**Price:** £499/m per seat
 
-To read
-https://developers.google.com/drive/api/quickstart/python
-https://medium.com/the-team-of-future-learning/integrating-google-drive-api-with-python-a-step-by-step-guide-7811fcd16c44
-https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-google
-https://llamahub.ai/l/readers/llama-index-readers-google?from=readers
-https://ts.llamaindex.ai/
-https://www.bentoml.com/blog/exploring-the-world-of-open-source-text-to-speech-models
-https://huggingface.co/tasks/text-to-speech
-https://simonwillison.net/
-https://parlance-labs.com/education/
-https://docs.trychroma.com/guides/multimodal
-https://www.kaggle.com/code/markishere/day-2-document-q-a-with-rag
-https://news.ycombinator.com/item?id=40443558
-https://github.com/google-gemini/cookbook/tree/main/quickstarts
-https://github.com/anthropics/anthropic-quickstarts/blob/main/README.md
-https://github.com/anthropics/anthropic-cookbook
-https://docs.anthropic.com/en/docs/build-with-claude/computer-use
-https://github.com/langroid/langroid-examples/blob/main/examples/basic/chat-search.py
-https://github.com/langroid/langroid-examples/blob/main/examples/basic/chat.py
-https://langroid.github.io/langroid/reference/
-https://docs.chainlit.io/get-started/overview
-https://github.com/openai/swarm/tree/main/examples/basic
-To install dependencies:
+## Overview
 
-```bash
-bun install
-```
+This project automates the process of handling emails for associates, enhancing them with additional data, and creating a structured output.
 
-To run:
+## Associate UX
 
-```bash
-bun run index.ts
-```
+- The associate receives an email.
+- Forwards it to Primo AI.
+- Receives:
+  - Reorganised files
+  - A summary document
+  - A new entry in the CRM
 
-This project was created using `bun init` in bun v1.0.33. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+## Full Flow
+
+1. **Email Reception:**
+
+   - Associate receives an email containing:
+     - Note
+     - Presentation / DocSend
+     - Email
+
+2. **Forwarding:**
+
+   - They forward it to `doc@primoai.com`.
+
+3. **Primo AI Processing:**
+
+   - Structures the email into a standardised format.
+   - Enhances it with:
+     - Google (management and company info)
+     - Pitchbook
+     - Crunchbase
+     - LinkedIn (management and company)
+     - Company House (management and company)
+
+4. **Benchmarking:**
+
+   - Compares this profile with previous/other profiles.
+
+5. **Output Creation:**
+   - Generates an output document with the results.
+
+## Technical Details
+
+### Email Service
+
+- Receive and store emails.
+- Extract attachments.
+- Log activities.
+- Create database entries to update user values.
+- Initiate analysis.
+
+### Analysis Content
+
+- Understand email content.
+- Analyse attachments (PDF, PowerPoint, Excel).
+- Analyse links (DocSend, company website from email domain).
+
+### External Enhancement
+
+- **Google:** Perplexity
+- **Pitchbook:** API
+- **Crunchbase:** API
+- **LinkedIn:** Scraping service
+- **Company House:** Scraping
+
+---
+
+This README provides a comprehensive overview of the email processing and enhancement workflow for associates using Primo AI.

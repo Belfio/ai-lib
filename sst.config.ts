@@ -18,9 +18,12 @@ export default $config({
       link: [email],
       url: true,
     });
-
+    const web = new sst.aws.Remix("PrimoAI", {
+      link: [api],
+    });
     return {
-      api,
+      api: api.url,
+      web: web.url,
     };
   },
 });
