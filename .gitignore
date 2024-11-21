@@ -1,17 +1,17 @@
 node_modules
+.sst
 
 /.cache
 /build
 .env
 
-.sst
+.sst/*
 
 bun.lockb
 package-lock.json
 sst-env.d.ts
 sst-env.json
 sst-env.local.json
-
 
 *.env
 
