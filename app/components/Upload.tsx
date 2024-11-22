@@ -2,6 +2,7 @@ import { Upload, Plus, X, AlertCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "./ui/button";
 
 const FileItem = ({
   name,
@@ -73,9 +74,9 @@ export default function ModelUpload({
             className="absolute w-full h-full custom-file-input opacity-0"
             name="attachments"
           />
-          <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <Button className="mt-2 px-6 text-md py-6 bg-blue-500 text-white rounded hover:bg-blue-600">
             Select Files
-          </button>
+          </Button>
         </div>
         <Alert className=" mx-auto mt-2">
           <AlertCircle className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
-import { useActionData, useFetcher } from "@remix-run/react";
+import { Outlet, useActionData, useFetcher } from "@remix-run/react";
 
 import { useState } from "react";
 
@@ -37,24 +37,30 @@ export default function Index() {
     });
   };
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <p>Hello I am PrimoAI</p>
-      <div className="flex flex-col gap-4 max-w-[540px]">
-        <fetcher.Form
-          method="post"
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 mt-4"
-        >
-          <Input type="text" name="email" placeholder="Email from" />
-          <Input type="text" name="subject" placeholder="Email subject" />
-          <Textarea
-            name="body"
-            placeholder="Email body"
-            className="mt-3 resize-none h-[120px]"
-          />
-          <Upload files={files} setFiles={setFiles} />
-          <Button type="submit">Send</Button>
-        </fetcher.Form>
+    <div className="max-w-8xl mx-auto flex min-h-screen p-12">
+      <div className="w-1/2 flex flex-col items-center justify-start">
+        <p>Hello I am PrimoAI</p>
+
+        <div className="flex flex-col gap-4 max-w-xl">
+          <fetcher.Form
+            method="post"
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4 mt-4"
+          >
+            <Input type="text" name="email" placeholder="Email from" />
+            <Input type="text" name="subject" placeholder="Email subject" />
+            <Textarea
+              name="body"
+              placeholder="Email body"
+              className="mt-3 resize-none h-[120px]"
+            />
+            <Upload files={files} setFiles={setFiles} />
+            <Button type="submit">Send</Button>
+          </fetcher.Form>
+        </div>
+      </div>
+      <div className="w-1/2 flex flex-col items-center justify-start">
+        <Outlet />
       </div>
     </div>
   );

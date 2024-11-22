@@ -1,45 +1,35 @@
 import type { UploadHandlerPart } from "@remix-run/node";
-import s3 from "../lib/s3";
+import s3 from "@/lib/s3";
 
 export const s3UploaderHandler: <T extends UploadHandlerPart>(
   props: T,
-  valueId: string,
-  folder: "models" | "datasets"
-) => Promise<string> = async (props, valueId, folder) => {
+  folderId: string,
+  folder: "attachments"
+) => Promise<string> = async (props, folderId, folder) => {
   const { filename, data, contentType } = props;
 
-  // If it is not a file, I'll hadle it!
+  // If it is not a file, handle it
   if (!filename || !data || !contentType) {
-    // Collect all chunks of data
-    const chunks = [];
+    const chunks: Uint8Array[] = [];
     for await (const chunk of data) {
       chunks.push(chunk);
     }
 
-    // Combine all chunks into a single Buffer
     const buffer = Buffer.concat(chunks);
-
-    // Convert buffer to string
-    const bufferString = buffer.toString();
-    // console.log("bufferString", bufferString);
-
-    return bufferString;
+    return buffer.toString();
   }
 
-  // If it is a file, I'll upload it to S3
+  // If it is a file, upload to S3
   let s3FileName = "";
   switch (folder) {
-    case "models":
-      s3FileName = `${valueId}/${filename}`;
-      console.log("s3FileName", s3FileName);
-      return await s3.models.upload(data, s3FileName, contentType);
-    case "datasets":
-      s3FileName = `${valueId}/${filename.split(".")[0]}.zip`;
-      console.log("s3FileName", s3FileName);
-      return await s3.datasets.upload(data, s3FileName, contentType);
-    default:
-      break;
+    case "attachments":
+      s3FileName = `attachments/${folderId}/${filename}`;
+      await s3.docStoring.upload(data, s3FileName, contentType);
+      return JSON.stringify({ fileUrl: s3FileName });
   }
+
+  // Optional: Throw an error if folder is somehow not matched
+  throw new Error(`Unsupported folder type: ${folder}`);
 };
 
 export const externalLinkUploader = async (
@@ -59,7 +49,7 @@ export const externalLinkUploader = async (
     },
   };
   const s3FileName = `datasetFile-${datasetId}.zip`;
-  const s3Url = await s3.datasets.upload(
+  const s3Url = await s3.docStoring.upload(
     asyncIterable,
     s3FileName,
     "application/zip"
