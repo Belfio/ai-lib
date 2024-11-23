@@ -1,7 +1,5 @@
 # MVP 1 - Email to Attio
 
-**Price:** £499/m per seat
-
 ## Overview
 
 This project automates the process of handling emails for associates, enhancing them with additional data, and creating a structured output.
