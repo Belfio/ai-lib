@@ -1,4 +1,4 @@
-import { CompanyProfile } from "@/lib/newTypes";
+import { CompanyProfile } from "@/lib/typesCompany";
 
 export async function analyzeWithAI(
   emailContent: string,
