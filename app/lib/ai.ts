@@ -32,3 +32,26 @@ export async function analyzeWithAI(
   const generatedProfile: CompanyProfile = JSON.parse(data.choices[0].text);
   return generatedProfile;
 }
+
+const ai = {
+  perplexity: {
+    search: (query: string): string => {
+      return `found with perplexity: ${query}`;
+    },
+  },
+  openAi: {
+    analyzeEmail: (
+      emailContent: string,
+      attachments: string[]
+    ): Promise<CompanyProfile> => {
+      return analyzeWithAI(emailContent, attachments);
+    },
+  },
+  anthropic: {
+    search: (query: string): string => {
+      return `found with perplexity: ${query}`;
+    },
+  },
+};
+
+export default ai;
