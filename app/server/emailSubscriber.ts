@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 import { JobStatus } from "@/lib/types";
 import { DynamoDBStreamEvent } from "aws-lambda";
+import { emailProcessing } from "./emailProcessing.server";
 
 export const handler = async (event: DynamoDBStreamEvent) => {
   console.log("Email Subscriber event", event);
@@ -38,5 +39,7 @@ export const handler = async (event: DynamoDBStreamEvent) => {
 
   // start processing the email
   console.log("Processing email", email);
+
+  await emailProcessing(email);
   return;
 };

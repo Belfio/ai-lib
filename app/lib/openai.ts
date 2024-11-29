@@ -258,26 +258,50 @@ const runPollingOneMinute = async (threadId: string, runId: string) => {
 const pdfDataExtraction = async (
   file: File,
   prompt: string,
-  tools: OpenAI.Beta.Assistants.AssistantTool[] = [{ type: "file_search" }]
+  tools: OpenAI.Beta.Assistants.AssistantTool[] = [{ type: "file_search" }],
+  previousIds?: {
+    threadId: string;
+    assistantId: string;
+    fileId: string;
+  }
 ) => {
-  const assistant = await createAssistant(
-    "Information Extraction Assistant",
-    "Read the document thoroughly and extract the information I am going to ask you",
-    tools
-  );
   // console.log(assistant);
   // console.log("file", file.name);
-  const fileId = await uploadFile(file);
+  let fileId: string;
+  let threadId: string;
+  let assistantId: string;
+  if (previousIds) {
+    fileId = previousIds.fileId;
+    threadId = previousIds.threadId;
+    assistantId = previousIds.assistantId;
+    await addMessageToThread(threadId, prompt);
+  } else {
+    fileId = await uploadFile(file);
+    const thread = await createThread();
+    threadId = thread.id;
+    const assistant = await createAssistant(
+      "Information Extraction Assistant",
+      "Read the document thoroughly and extract the information I am going to ask you",
+      tools
+    );
+    assistantId = assistant.id;
+    await addMessageToThread(threadId, prompt, fileId);
+  }
 
-  const thread = await createThread();
-
-  await addMessageToThread(thread.id, prompt, fileId);
   // console.log("thread", thread);
-  const run = await runAssistant(thread.id, assistant.id);
-  const messages = await runPollingOneMinute(thread.id, run.id);
+  const run = await runAssistant(threadId, assistantId);
+  const messages = await runPollingOneMinute(threadId, run.id);
   //   console.log(messages);
   try {
-    return messages?.data[0].content[0].text.value;
+    return {
+      message: messages?.data[0].content[0].text.value,
+      askMore: async (prompt: string) =>
+        pdfDataExtraction(file, prompt, tools, {
+          threadId,
+          assistantId,
+          fileId,
+        }),
+    };
   } catch (error) {
     console.log("error", error);
     console.log("messages", JSON.stringify(messages, null, 2));

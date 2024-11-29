@@ -115,7 +115,7 @@ export default function ModelUpload({
             </button>
           </div>
         </div>
-        <div className="mt-6">
+        <div className="mt-6 hidden">
           <h4 className=" font-semibold mb-2">Upload Requirements</h4>
           <ul className="list-disc pl-5 text-sm text-gray-600">
             <li>
