@@ -5,7 +5,9 @@ import { CompanyProfile } from "@/lib/typesCompany";
 import { UploadFormData } from "@/lib/types";
 import oai from "@/lib/openai";
 
-export const emailProcessing = async (event: UploadFormData) => {
+export const emailProcessing = async (
+  event: UploadFormData
+): Promise<CompanyProfile | null> => {
   const { email, attachments, subject, body } = event;
   console.log("email", email);
   console.log("attachments", attachments);
@@ -31,9 +33,13 @@ export const emailProcessing = async (event: UploadFormData) => {
   try {
     const pdfData = await oai.pdfDataExtraction(file, pdfPrompt);
     console.log("pdfData", pdfData);
+    const companyProfile: CompanyProfile = {
+      ...pdfData,
+    };
+    return companyProfile;
   } catch (error) {
     console.error("Error extracting data from PDF", error);
   }
 
-  return { success: true };
+  return null;
 };
