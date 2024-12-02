@@ -264,7 +264,7 @@ const pdfDataExtraction = async (
     assistantId: string;
     fileId: string;
   }
-) => {
+): Promise<{ message: string; askMore: (prompt: string) => Promise<any> }> => {
   // console.log(assistant);
   // console.log("file", file.name);
   let fileId: string;
@@ -274,7 +274,7 @@ const pdfDataExtraction = async (
     fileId = previousIds.fileId;
     threadId = previousIds.threadId;
     assistantId = previousIds.assistantId;
-    await addMessageToThread(threadId, prompt);
+    await addMessageToThread(threadId, prompt, fileId);
   } else {
     fileId = await uploadFile(file);
     const thread = await createThread();

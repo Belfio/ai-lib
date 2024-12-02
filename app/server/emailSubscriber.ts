@@ -43,7 +43,7 @@ export const handler = async (event: DynamoDBStreamEvent) => {
   const companyProfile = await emailProcessing(email);
 
   console.log("Company Profile", companyProfile);
-
+  return;
   if (!companyProfile) {
     await db.job.create({ ...job, status: JobStatus.FAILED });
     return;
