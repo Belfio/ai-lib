@@ -1,13 +1,14 @@
 import {
   ActionFunctionArgs,
-  UploadHandler,
-  UploadHandlerPart,
   unstable_parseMultipartFormData,
   redirect,
+  unstable_composeUploadHandlers,
+  unstable_createFileUploadHandler,
+  unstable_createMemoryUploadHandler,
+  NodeOnDiskFile,
 } from "@remix-run/node";
 import db from "@/lib/db";
 import { randomId } from "@/lib/utils";
-import { s3UploaderHandler } from "@/server/upload.server";
 import { JobStatus, JobType, PitchEmailFormData } from "@/lib/types";
 import s3 from "@/lib/s3";
 
@@ -19,15 +20,45 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   console.log("model add file");
   const folderId = randomId(); //this should be userId
   const folder = "attachments";
-  const s3uploaderWithId: UploadHandler = (props: UploadHandlerPart) =>
-    s3UploaderHandler(props, folderId, folder);
+
+  const uploadHandler = unstable_composeUploadHandlers(
+    unstable_createFileUploadHandler({
+      maxPartSize: 100000000,
+      file: ({ filename }) => filename,
+    }),
+    // parse everything else into memory
+    unstable_createMemoryUploadHandler()
+  );
 
   const formData = await unstable_parseMultipartFormData(
     request,
-    s3uploaderWithId
+    // s3uploaderWithId
+    uploadHandler
   );
+  const file: NodeOnDiskFile | null = formData.get(
+    "attachments"
+  ) as NodeOnDiskFile;
+  console.log("file", file);
+  const filename = file?.name;
+  const s3FileName = `attachments/${folderId}/${filename}`;
+
+  const asyncIterable: AsyncIterable<Uint8Array> = {
+    async *[Symbol.asyncIterator]() {
+      const reader = file.stream().getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        yield value;
+      }
+    },
+  };
+
+  await s3.docStoring.upload(asyncIterable, s3FileName, file.type);
+  // return JSON.stringify({ fileUrl: s3FileName });
 
   const fileUrls = await s3.docStoring.list(folder + "/" + folderId);
+  // const fileUrls = [`attachments/${folderId}/pitchDeck.pdf`];
+  // const formData = await request.formData();
   const uploadData: PitchEmailFormData = {
     email: formData.get("email") as string,
     subject: formData.get("subject") as string,
@@ -46,5 +77,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     constIndex: "constIndex",
   };
   await db.job.create(newJob);
+  // const signedUrl = await s3.docStoring.getSignedUrl(
+  //   fileUrls[0],
+  //   "application/pdf"
+  // );
   return redirect(`/success/${folderId}`);
+  // return { signedUrl };
 };

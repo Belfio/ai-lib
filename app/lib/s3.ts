@@ -174,6 +174,16 @@ const s3 = {
     delete: (key: string) => deleteObjectFromS3(key, Resource.DocStoring.name),
     list: (folder: string) =>
       listObjectsInFolder(Resource.DocStoring.name, folder),
+    getSignedUrl: (key: string, fileType: string) =>
+      getSignedUrl(
+        s3Client,
+        new PutObjectCommand({
+          Bucket: Resource.DocStoring.name,
+          Key: key,
+          ContentType: fileType,
+        }),
+        { expiresIn: 3600 }
+      ),
   },
   lib: {
     stringToAsyncIterable: (str: string) => stringToAsyncIterable(str),

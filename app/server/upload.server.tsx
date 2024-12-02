@@ -7,7 +7,7 @@ export const s3UploaderHandler: <T extends UploadHandlerPart>(
   folder: "attachments"
 ) => Promise<string> = async (props, folderId, folder) => {
   const { filename, data, contentType } = props;
-
+  console.log("s3UploaderHandler", filename, data, contentType);
   // If it is not a file, handle it
   if (!filename || !data || !contentType) {
     const chunks: Uint8Array[] = [];
@@ -18,7 +18,7 @@ export const s3UploaderHandler: <T extends UploadHandlerPart>(
     const buffer = Buffer.concat(chunks);
     return buffer.toString();
   }
-
+  console.log("s3UploaderHandler file", filename, data, contentType);
   // If it is a file, upload to S3
   let s3FileName = "";
   switch (folder) {

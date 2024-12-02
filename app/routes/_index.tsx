@@ -1,12 +1,11 @@
 import type { MetaFunction } from "@remix-run/node";
 import { useActionData, useFetcher } from "@remix-run/react";
-
 import { useState } from "react";
-
 import Upload from "@/components/Upload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { randomId } from "@/lib/utils";
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,18 +23,51 @@ export default function Index() {
 
   const [files, setFiles] = useState<FileList | null>(null);
 
+  const uploadToS3 = async (file: File) => {
+    const folderId = randomId();
+    const fileUrl = "attachments/" + folderId + "/" + file.name;
+    // 1. Get pre-signed URL
+    const response = await fetch("/api/doc/upload/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filename: fileUrl,
+        contentType: file.type,
+      }),
+    });
+
+    const { signedUrl } = await response.json();
+
+    // 2. Upload directly to S3
+    await fetch(signedUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+    return fileUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     if (!files) return;
-    Array.from(files).map((file) => formData.append(file.name, file));
-    console.log("sending files?", files.length);
+
+    // Upload files first and get their URLs/keys
+    const fileUrls = await Promise.all(Array.from(files).map(uploadToS3));
+    console.log("fileUrls", fileUrls);
+    // Add file URLs to formData
+    formData.append("attachments", JSON.stringify(fileUrls));
+    formData.append("folderId", "zzz");
+
     await fetcher.submit(formData, {
       method: "post",
       encType: "multipart/form-data",
-      action: "/api/doc/upload/file",
+      action: "/api/doc/upload/form",
     });
   };
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <p>Hello I am PrimoAI</p>
@@ -43,6 +75,7 @@ export default function Index() {
         <fetcher.Form
           method="post"
           onSubmit={handleSubmit}
+          encType="multipart/form-data"
           className="flex flex-col gap-4 mt-4"
         >
           <Input type="text" name="email" placeholder="Email from" />
@@ -52,14 +85,10 @@ export default function Index() {
             placeholder="Email body"
             className="mt-3 resize-none h-[120px]"
           />
-          <Upload files={files} setFiles={setFiles} />
           <Button type="submit">Send</Button>
         </fetcher.Form>
+        <Upload files={files} setFiles={setFiles} />
       </div>
     </div>
   );
 }
-
-export const loader = async () => {
-  return {};
-};

@@ -9,15 +9,12 @@ export default $config({
     };
   },
   async run() {
-    const email = new sst.aws.Email("MyEmail", {
-      sender: "a.belfiori@gmail.com",
-    });
-
-    const api = new sst.aws.Function("MyApi", {
-      handler: "sender.handler",
-      link: [email],
-      url: true,
-    });
+    // const email = new sst.aws.Email("MyEmailPrimoAI", {
+    //   sender:
+    //     $app?.stage === "prod"
+    //       ? "a.belfiori+primoai2@gmail.com"
+    //       : "a.belfiori@gmail.com",
+    // });
 
     const bucketDocStoring = new sst.aws.Bucket("DocStoring", {});
     const dbEmail = new sst.aws.Dynamo("EmailTable", {
@@ -89,11 +86,15 @@ export default $config({
     });
 
     const web = new sst.aws.Remix("PrimoAI", {
-      link: [api, bucketDocStoring, dbEmail, dbJobs, dbCompanyProfile],
+      link: [bucketDocStoring, dbEmail, dbJobs, dbCompanyProfile],
+      environment: {
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
+        OPENAI_ORG: process.env.OPENAI_ORG ?? "",
+        OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+      },
     });
 
     return {
-      api: api.url,
       web: web.url,
     };
   },
