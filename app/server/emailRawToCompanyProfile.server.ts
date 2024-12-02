@@ -23,8 +23,10 @@ export const emailRawToCompanyProfile = async (
     console.log("companyProfile", companyProfile);
 
     // const parsedCompanyProfile = CompanyProfileSchema.parse(companyProfile);
-
-    return companyProfile;
+    if (!companyProfile) {
+      return null;
+    }
+    return JSON.parse(companyProfile);
   } catch (error) {
     console.error("Error parsing raw data into company profile", error);
   }

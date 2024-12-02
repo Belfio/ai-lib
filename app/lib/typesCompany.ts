@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 // Basic Utility Schemas
-const URLSchema = z.string().url();
-const YearSchema = z.number().int().min(0);
-const PercentageSchema = z.number().min(0).max(100);
-const CurrencySchema = z.number().min(0);
+const URLSchema = z.string();
+const YearSchema = z.number().int();
+const PercentageSchema = z.number();
+const CurrencySchema = z.number();
 
 // Team Member Schema
 const TeamMemberSchema = z.object({
@@ -16,7 +16,7 @@ const TeamMemberSchema = z.object({
 // Funding Round Schema
 const FundingRoundSchema = z.object({
   round: z.string(),
-  date: z.date(),
+  date: z.string(),
   amount: CurrencySchema,
   valuation: CurrencySchema,
   leadInvestor: z.string(),
@@ -42,9 +42,9 @@ const OwnershipInfoSchema = z.object({
 const CompanyBasicInfoSchema = z.object({
   companyName: z.string(),
   urls: z.object({
-    website: URLSchema.optional(),
-    linkedin: URLSchema.optional(),
-    companiesHouse: URLSchema.optional(),
+    website: z.string().optional(),
+    linkedin: z.string().optional(),
+    companiesHouse: z.string().optional(),
   }),
   headquarters: z.object({
     city: z.string(),
@@ -86,7 +86,7 @@ const ProductInfoSchema = z.object({
 // Team Information Schema
 const TeamInfoSchema = z.object({
   leadership: z.array(TeamMemberSchema),
-  teamSize: z.number().int().min(0),
+  teamSize: z.number().int(),
   keyRoles: z.array(TeamMemberSchema),
   governance: z.object({
     boardMembers: z.array(TeamMemberSchema).optional(),
@@ -201,10 +201,10 @@ export const CompanyProfileSchema = z.object({
   basicInfo: CompanyBasicInfoSchema,
   productInfo: ProductInfoSchema,
   teamInfo: TeamInfoSchema,
-  ownershipInfo: OwnershipInfoSchema,
-  financials: FinancialMetricsSchema,
-  benchmarking: BenchmarkingMetricsSchema,
-  emailId: z.string().email(),
+  // ownershipInfo: OwnershipInfoSchema,
+  // financials: FinancialMetricsSchema,
+  // benchmarking: BenchmarkingMetricsSchema,
+  emailId: z.string(),
   companyId: z.string(),
 });
 

@@ -38,6 +38,7 @@ export const emailDataExtraction = async (
         }
       } catch (error) {
         console.error(`Error extracting data from PDF for ${key}`, error);
+        results[key as keyof CompanyRawData] = "error";
       }
     }
 

@@ -28,7 +28,9 @@ export default function Selected() {
         </Button>
         <input type="hidden" name="id" value={email.id} />
       </Form>
-      {actionData?.response && <pre>{actionData.response}</pre>}
+      {actionData?.response && (
+        <pre>{JSON.stringify(actionData.response, null, 2)}</pre>
+      )}
     </div>
   );
 }

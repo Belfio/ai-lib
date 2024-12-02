@@ -66,7 +66,7 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     console.log("Failed to extract data from email");
     return;
   }
-
+  console.log("Company Raw Data writing to S3", companyRawData);
   await db.job.create({ ...job, rawData: companyRawData });
   const data = JSON.stringify(companyRawData);
   const uint8Data = new TextEncoder().encode(data);
