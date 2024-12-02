@@ -1,192 +1,229 @@
-// Basic utility types
-type URL = string;
-type Year = number;
-type Percentage = number;
-type Currency = number;
+import { z } from "zod";
+
+// Basic Utility Schemas
+const URLSchema = z.string().url();
+const YearSchema = z.number().int().min(0);
+const PercentageSchema = z.number().min(0).max(100);
+const CurrencySchema = z.number().min(0);
+
+// Team Member Schema
+const TeamMemberSchema = z.object({
+  name: z.string(),
+  title: z.string(),
+  background: z.string(),
+});
+
+// Funding Round Schema
+const FundingRoundSchema = z.object({
+  round: z.string(),
+  date: z.date(),
+  amount: CurrencySchema,
+  valuation: CurrencySchema,
+  leadInvestor: z.string(),
+});
+
+// Ownership Information Schema
+const OwnershipInfoSchema = z.object({
+  capTable: z.array(
+    z.object({
+      stakeholder: z.string(),
+      ownership: PercentageSchema,
+    })
+  ),
+  fundingHistory: z.array(FundingRoundSchema),
+  legalEntityStructure: z.object({
+    subsidiaries: z.array(z.string()).optional(),
+    parentCompany: z.string().optional(),
+    partnerships: z.array(z.string()).optional(),
+  }),
+});
+
+// Company Basic Information Schema
+const CompanyBasicInfoSchema = z.object({
+  companyName: z.string(),
+  urls: z.object({
+    website: URLSchema.optional(),
+    linkedin: URLSchema.optional(),
+    companiesHouse: URLSchema.optional(),
+  }),
+  headquarters: z.object({
+    city: z.string(),
+    country: z.string(),
+    regionalFocus: z.string().optional(),
+  }),
+  founded: YearSchema,
+  industry: z.object({
+    primarySector: z.string(),
+    subSector: z.string(),
+  }),
+  businessModel: z.string(),
+  stage: z.string(),
+  overview: z.string(),
+});
+
+// Product Information Schema
+const ProductInfoSchema = z.object({
+  productServiceOffering: z.string(),
+  targetMarket: z.string(),
+  addressableMarket: z.object({
+    tam: CurrencySchema.optional(),
+    sam: CurrencySchema.optional(),
+    som: CurrencySchema.optional(),
+  }),
+  marketShare: PercentageSchema,
+  competitiveAdvantage: z.string(),
+  pricingModel: z.string(),
+  useCases: z.array(z.string()),
+  productRoadmap: z.string().optional(),
+  competition: z.array(
+    z.object({
+      name: z.string(),
+      website: URLSchema.optional(),
+    })
+  ),
+});
+
+// Team Information Schema
+const TeamInfoSchema = z.object({
+  leadership: z.array(TeamMemberSchema),
+  teamSize: z.number().int().min(0),
+  keyRoles: z.array(TeamMemberSchema),
+  governance: z.object({
+    boardMembers: z.array(TeamMemberSchema).optional(),
+    advisoryBoard: z.array(TeamMemberSchema).optional(),
+  }),
+  cultureValues: z.string().optional(),
+});
+
+// Financial Metrics Schema
+const FinancialMetricsSchema = z.object({
+  historical: z.array(z.lazy(() => PeriodFinancialsSchema)),
+  projected: z.array(z.lazy(() => PeriodFinancialsSchema)),
+});
+
+// Period Financials Schema
+const PeriodFinancialsSchema = z.object({
+  period: z.object({
+    year: z.number().int(),
+    quarter: z.number().int().optional(),
+    month: z.number().int().optional(),
+  }),
+  revenueMetrics: z.object({
+    revenue: CurrencySchema,
+    mrr: CurrencySchema.optional(),
+    arr: CurrencySchema.optional(),
+    carr: CurrencySchema.optional(),
+    revenueGrowthRate: PercentageSchema,
+  }),
+  profitabilityMetrics: z.object({
+    cogs: CurrencySchema,
+    grossProfit: CurrencySchema,
+    grossProfitMargin: PercentageSchema,
+    personnelCosts: CurrencySchema,
+    salesAndMarketing: CurrencySchema,
+    rAndD: CurrencySchema,
+    otherOperatingCosts: CurrencySchema,
+    ebitda: CurrencySchema,
+    ebitdaMargin: PercentageSchema,
+    deprecationAndAmortization: CurrencySchema,
+    ebit: CurrencySchema,
+    interestExpense: CurrencySchema,
+    incomeTax: CurrencySchema,
+    netIncome: CurrencySchema,
+    breakEvenPoint: CurrencySchema,
+  }),
+  cashMetrics: z.object({
+    startingCashBalance: CurrencySchema,
+    operationalCashFlow: CurrencySchema,
+    investingCashFlow: CurrencySchema,
+    financingCashFlow: CurrencySchema,
+    freeCashFlows: CurrencySchema,
+    endingCashBalance: CurrencySchema,
+    cashBreakEvenPoint: CurrencySchema,
+    monthlyBurnRate: CurrencySchema,
+    runway: z.number().int(), // months
+    outstandingDebt: CurrencySchema,
+  }),
+  unitEconomics: z.object({
+    contractCount: z.number().int(),
+    averageContractValue: CurrencySchema,
+    customerCount: z.number().int(),
+    activeCustomerCount: z.number().int(),
+    cac: CurrencySchema,
+    ltv: CurrencySchema,
+    cacLtvRatio: z.number(),
+    paybackPeriod: z.number().int(), // months
+    churnRate: PercentageSchema,
+  }),
+  valuation: z.object({
+    currentValuation: CurrencySchema,
+    impliedMultiples: z.object({
+      revenueMultiple: z.number().optional(),
+      ebitdaMultiple: z.number().optional(),
+      // Add other multiples as needed
+    }),
+    transactionComps: z
+      .array(
+        z.object({
+          companyName: z.string(),
+          date: z.date(),
+          multiple: z.number(),
+          type: z.string(),
+        })
+      )
+      .optional(),
+  }),
+});
+
+// Benchmarking Metrics Schema
+const BenchmarkingMetricsSchema = z.object({
+  peers: z.array(
+    z.object({
+      companyName: z.string(),
+      metrics: z.object({
+        revenue: CurrencySchema.optional(),
+        revenueGrowthRate: PercentageSchema.optional(),
+        mrrArr: CurrencySchema.optional(),
+        ebitda: CurrencySchema.optional(),
+        ebitdaMargin: PercentageSchema.optional(),
+        freeCashFlows: CurrencySchema.optional(),
+        contractCount: z.number().int().optional(),
+        activeCustomers: z.number().int().optional(),
+        cacLtvRatio: z.number().optional(),
+        paybackRatio: z.number().optional(),
+      }),
+    })
+  ),
+});
+
+// Company Profile Schema
+export const CompanyProfileSchema = z.object({
+  basicInfo: CompanyBasicInfoSchema,
+  productInfo: ProductInfoSchema,
+  teamInfo: TeamInfoSchema,
+  ownershipInfo: OwnershipInfoSchema,
+  financials: FinancialMetricsSchema,
+  benchmarking: BenchmarkingMetricsSchema,
+  emailId: z.string().email(),
+  companyId: z.string(),
+});
+
+// Company Raw Data Schema
+export const CompanyRawDataSchema = z.object({
+  company: z.string(),
+  problem: z.string(),
+  solution: z.string(),
+  product: z.string(),
+  market: z.string(),
+  businessModel: z.string(),
+  team: z.string(),
+  raising: z.string(),
+  financials: z.string(),
+  milestones: z.string(),
+  other: z.string(),
+});
 
 // Main Company Profile Type
-export interface CompanyProfile {
-  basicInfo: CompanyBasicInfo;
-  productInfo: ProductInfo;
-  teamInfo: TeamInfo;
-  ownershipInfo: OwnershipInfo;
-  financials: FinancialMetrics;
-  benchmarking: BenchmarkingMetrics;
-}
+export type CompanyProfile = z.infer<typeof CompanyProfileSchema>;
 
-// Company Basic Information
-interface CompanyBasicInfo {
-  companyName: string;
-  urls: {
-    website?: URL;
-    linkedin?: URL;
-    companiesHouse?: URL;
-  };
-  headquarters: {
-    city: string;
-    country: string;
-    regionalFocus?: string;
-  };
-  founded: Year;
-  industry: {
-    primarySector: string;
-    subSector: string;
-  };
-  businessModel: "B2B" | "B2C" | "SaaS" | "Marketplace" | string;
-  stage: "Seed" | "Series A" | "Series B" | "Growth" | "Pre-IPO" | string;
-  overview: string;
-}
-
-// Product Information
-interface ProductInfo {
-  productServiceOffering: string;
-  targetMarket: string;
-  addressableMarket: {
-    tam?: Currency;
-    sam?: Currency;
-    som?: Currency;
-  };
-  marketShare: Percentage;
-  competitiveAdvantage: string;
-  pricingModel: "Subscription" | "One-time" | "Freemium" | string;
-  useCases: string[];
-  productRoadmap?: string;
-  competition: Array<{
-    name: string;
-    website?: URL;
-  }>;
-}
-
-// Team Information
-interface TeamMember {
-  name: string;
-  title: string;
-  background: string;
-}
-
-interface TeamInfo {
-  leadership: TeamMember[];
-  teamSize: number;
-  keyRoles: TeamMember[];
-  governance: {
-    boardMembers?: TeamMember[];
-    advisoryBoard?: TeamMember[];
-  };
-  cultureValues?: string;
-}
-
-// Ownership Information
-interface FundingRound {
-  round: string;
-  date: Date;
-  amount: Currency;
-  valuation: Currency;
-  leadInvestor: string;
-}
-
-interface OwnershipInfo {
-  capTable: Array<{
-    stakeholder: string;
-    ownership: Percentage;
-  }>;
-  fundingHistory: FundingRound[];
-  legalEntityStructure: {
-    subsidiaries?: string[];
-    parentCompany?: string;
-    partnerships?: string[];
-  };
-}
-
-// Financial Information
-interface FinancialMetrics {
-  historical: PeriodFinancials[];
-  projected: PeriodFinancials[];
-}
-
-interface PeriodFinancials {
-  period: {
-    year: number;
-    quarter?: number;
-    month?: number;
-  };
-  revenueMetrics: {
-    revenue: Currency;
-    mrr?: Currency;
-    arr?: Currency;
-    carr?: Currency;
-    revenueGrowthRate: Percentage;
-  };
-  profitabilityMetrics: {
-    cogs: Currency;
-    grossProfit: Currency;
-    grossProfitMargin: Percentage;
-    personnelCosts: Currency;
-    salesAndMarketing: Currency;
-    rAndD: Currency;
-    otherOperatingCosts: Currency;
-    ebitda: Currency;
-    ebitdaMargin: Percentage;
-    deprecationAndAmortization: Currency;
-    ebit: Currency;
-    interestExpense: Currency;
-    incomeTax: Currency;
-    netIncome: Currency;
-    breakEvenPoint: Currency;
-  };
-  cashMetrics: {
-    startingCashBalance: Currency;
-    operationalCashFlow: Currency;
-    investingCashFlow: Currency;
-    financingCashFlow: Currency;
-    freeCashFlows: Currency;
-    endingCashBalance: Currency;
-    cashBreakEvenPoint: Currency;
-    monthlyBurnRate: Currency;
-    runway: number; // months
-    outstandingDebt: Currency;
-  };
-  unitEconomics: {
-    contractCount: number;
-    averageContractValue: Currency;
-    customerCount: number;
-    activeCustomerCount: number;
-    cac: Currency;
-    ltv: Currency;
-    cacLtvRatio: number;
-    paybackPeriod: number; // months
-    churnRate: Percentage;
-  };
-  valuation: {
-    currentValuation: Currency;
-    impliedMultiples: {
-      revenueMultiple?: number;
-      ebitdaMultiple?: number;
-      // Add other multiples as needed
-    };
-    transactionComps?: Array<{
-      companyName: string;
-      date: Date;
-      multiple: number;
-      type: string;
-    }>;
-  };
-}
-
-// Benchmarking
-interface BenchmarkingMetrics {
-  peers: Array<{
-    companyName: string;
-    metrics: {
-      revenue?: Currency;
-      revenueGrowthRate?: Percentage;
-      mrrArr?: Currency;
-      ebitda?: Currency;
-      ebitdaMargin?: Percentage;
-      freeCashFlows?: Currency;
-      contractCount?: number;
-      activeCustomers?: number;
-      cacLtvRatio?: number;
-      paybackRatio?: number;
-    };
-  }>;
-}
+export type CompanyRawData = z.infer<typeof CompanyRawDataSchema>;

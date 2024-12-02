@@ -81,6 +81,11 @@ export default $config({
       link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
       handler: "app/server/emailSubscriber.handler",
       timeout: "10 minutes",
+      environment: {
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
+        OPENAI_ORG: process.env.OPENAI_ORG ?? "",
+        OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+      },
     });
 
     const web = new sst.aws.Remix("PrimoAI", {

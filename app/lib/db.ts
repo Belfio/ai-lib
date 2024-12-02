@@ -1,4 +1,4 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommandInput } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   DeleteCommand,
@@ -6,7 +6,12 @@ import {
   GetCommand,
   PutCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { JobType, UploadFormData, UserType } from "@/lib/types";
+import {
+  JobType,
+  PitchEmailFormData,
+  UploadFormData,
+  UserType,
+} from "@/lib/types";
 import { Resource } from "sst/resource";
 import { CompanyProfile } from "./typesCompany";
 
@@ -34,13 +39,13 @@ const db = {
     },
   },
   email: {
-    get: async (id: string): Promise<UploadFormData> => {
+    get: async (id: string): Promise<PitchEmailFormData> => {
       const email = (await getItem(Resource.EmailTable.name, {
         id,
-      })) as UploadFormData;
+      })) as PitchEmailFormData;
       return email;
     },
-    getByApproved: async (): Promise<UploadFormData[]> => {
+    getByApproved: async (): Promise<PitchEmailFormData[]> => {
       const emails = (await queryItems(
         Resource.EmailTable.name,
         "ApprovedIndex",
@@ -49,25 +54,25 @@ const db = {
       )) as { items: UploadFormData[] | null; lastEvaluatedKey?: any };
       return emails.items || [];
     },
-    getNItems: async (n = 50): Promise<UploadFormData[]> => {
+    getNItems: async (n = 50): Promise<PitchEmailFormData[]> => {
       const emails = (await getNItems(
         Resource.EmailTable.name,
         "CreationIndex",
         n
-      )) as { items: UploadFormData[] | null; lastEvaluatedKey?: any };
+      )) as { items: PitchEmailFormData[] | null; lastEvaluatedKey?: any };
       return emails.items || [];
     },
-    getAll: async (): Promise<UploadFormData[]> => {
+    getAll: async (): Promise<PitchEmailFormData[]> => {
       const emails = (await queryItems(
         Resource.EmailTable.name,
         "ConstIndex",
         "constIndex",
         "constIndex"
-      )) as { items: UploadFormData[] | null; lastEvaluatedKey?: any };
+      )) as { items: PitchEmailFormData[] | null; lastEvaluatedKey?: any };
       return emails.items || [];
     },
 
-    getByLatest: async (n = 50): Promise<UploadFormData[]> => {
+    getByLatest: async (n = 50): Promise<PitchEmailFormData[]> => {
       const emails = (await getNItems(
         Resource.EmailTable.name,
         "CreationIndex",
@@ -75,7 +80,7 @@ const db = {
       )) as { items: UploadFormData[] | null; lastEvaluatedKey?: any };
       return emails.items || [];
     },
-    create: async (email: UploadFormData) => {
+    create: async (email: PitchEmailFormData) => {
       try {
         const response = await createItem(Resource.EmailTable.name, email);
         if (!response.isSuccess) {
@@ -120,6 +125,15 @@ const db = {
         id: jobId,
       });
       return job as JobType | null;
+    },
+    queryFromEmailId: async (emailId: string): Promise<JobType[] | null> => {
+      const jobs = await queryItems(
+        Resource.JobsTable.name,
+        "EmailIndex",
+        "emailId",
+        emailId
+      );
+      return jobs.items || [];
     },
   },
 };

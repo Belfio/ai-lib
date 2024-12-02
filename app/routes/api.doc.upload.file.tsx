@@ -8,7 +8,7 @@ import {
 import db from "@/lib/db";
 import { randomId } from "@/lib/utils";
 import { s3UploaderHandler } from "@/server/upload.server";
-import { JobType, UploadFormData } from "@/lib/types";
+import { JobStatus, JobType, PitchEmailFormData } from "@/lib/types";
 import s3 from "@/lib/s3";
 
 // TODO:
@@ -28,7 +28,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   );
 
   const fileUrls = await s3.docStoring.list(folder + "/" + folderId);
-  const uploadData: UploadFormData = {
+  const uploadData: PitchEmailFormData = {
     email: formData.get("email") as string,
     subject: formData.get("subject") as string,
     body: formData.get("body") as string,
@@ -42,7 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const newJob: JobType = {
     id: randomId(),
     emailId: folderId,
-    status: "pending",
+    status: JobStatus.PENDING,
     constIndex: "constIndex",
   };
   await db.job.create(newJob);

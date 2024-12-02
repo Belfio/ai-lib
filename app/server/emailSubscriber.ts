@@ -1,7 +1,11 @@
 import db from "@/lib/db";
 import { JobStatus } from "@/lib/types";
 import { DynamoDBStreamEvent } from "aws-lambda";
-import { emailProcessing } from "./emailProcessing.server";
+import { emailOpenAiSetup } from "./emailOpenAiSetup.server";
+import { emailDataExtraction } from "./emailDataExtraction.server";
+import { emailRawToCompanyProfile } from "./emailRawToCompanyProfile.server";
+import { randomId } from "@/lib/utils";
+import s3 from "@/lib/s3";
 
 export const handler = async (event: DynamoDBStreamEvent) => {
   console.log("Email Subscriber event", event);
@@ -34,23 +38,54 @@ export const handler = async (event: DynamoDBStreamEvent) => {
 
   if (!email) {
     await db.job.create({ ...job, status: JobStatus.FAILED });
+    console.log("Failed to get email");
     return;
   }
 
   // start processing the email
   console.log("Processing email", email);
-
-  const companyProfile = await emailProcessing(email);
-
-  console.log("Company Profile", companyProfile);
-  return;
-  if (!companyProfile) {
+  console.log("Creating a new thread");
+  const openAiSettings = await emailOpenAiSetup(email);
+  if (!openAiSettings) {
     await db.job.create({ ...job, status: JobStatus.FAILED });
+    console.log("Failed to setup OpenAI settings");
+    return;
+  }
+  await db.email.create({
+    ...email,
+    openAiSettings,
+  });
+  const companyRawData = await emailDataExtraction({
+    ...email,
+    openAiSettings,
+  });
+
+  console.log("Company Raw Data", companyRawData);
+  if (!companyRawData) {
+    await db.job.create({ ...job, status: JobStatus.FAILED });
+    console.log("Failed to extract data from email");
     return;
   }
 
-  await db.companyProfile.create(companyProfile);
+  await db.job.create({ ...job, rawData: companyRawData });
+  const data = JSON.stringify(companyRawData);
+  const uint8Data = new TextEncoder().encode(data);
+  const asyncIterable = (async function* () {
+    yield uint8Data;
+  })();
+  await s3.docStoring.upload(asyncIterable, job.id, "application/json");
+  const companyProfile = await emailRawToCompanyProfile(companyRawData);
 
+  if (!companyProfile) {
+    await db.job.create({ ...job, status: JobStatus.FAILED });
+    console.log("Failed to parse raw data into company profile");
+    return;
+  }
+  await db.companyProfile.create({
+    ...companyProfile,
+    emailId: email.id,
+    companyId: randomId(),
+  });
   await db.job.create({ ...job, status: JobStatus.COMPLETED });
 
   return;

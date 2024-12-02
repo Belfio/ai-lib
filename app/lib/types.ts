@@ -1,3 +1,5 @@
+import { CompanyRawData } from "./typesCompany";
+
 export enum JobStatus {
   PENDING = "pending",
   COMPLETED = "completed",
@@ -10,7 +12,20 @@ export type UploadFormData = {
   body: string;
   attachments: string[];
   id: string;
+};
+
+export type PitchEmailFormData = {
+  email: string;
+  subject: string;
+  body: string;
+  attachments: string[];
+  id: string;
   constIndex: "constIndex";
+  openAiSettings?: {
+    threadId: string;
+    assistantId: string;
+    fileId: string;
+  };
 };
 
 export type JobType = {
@@ -18,6 +33,7 @@ export type JobType = {
   emailId: string;
   status: JobStatus;
   constIndex: "constIndex";
+  rawData?: CompanyRawData;
 };
 export interface ResponseType {
   isSuccess: boolean;

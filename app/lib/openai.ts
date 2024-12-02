@@ -256,57 +256,50 @@ const runPollingOneMinute = async (threadId: string, runId: string) => {
 };
 
 const pdfDataExtraction = async (
-  file: File,
   prompt: string,
-  tools: OpenAI.Beta.Assistants.AssistantTool[] = [{ type: "file_search" }],
-  previousIds?: {
+  ids: {
     threadId: string;
     assistantId: string;
     fileId: string;
   }
-): Promise<{ message: string; askMore: (prompt: string) => Promise<any> }> => {
-  // console.log(assistant);
-  // console.log("file", file.name);
-  let fileId: string;
-  let threadId: string;
-  let assistantId: string;
-  if (previousIds) {
-    fileId = previousIds.fileId;
-    threadId = previousIds.threadId;
-    assistantId = previousIds.assistantId;
-    await addMessageToThread(threadId, prompt, fileId);
-  } else {
-    fileId = await uploadFile(file);
-    const thread = await createThread();
-    threadId = thread.id;
-    const assistant = await createAssistant(
-      "Information Extraction Assistant",
-      "Read the document thoroughly and extract the information I am going to ask you",
-      tools
-    );
-    assistantId = assistant.id;
-    await addMessageToThread(threadId, prompt, fileId);
-  }
-
-  // console.log("thread", thread);
-  const run = await runAssistant(threadId, assistantId);
-  const messages = await runPollingOneMinute(threadId, run.id);
-  //   console.log(messages);
+): Promise<{ message: string } | null> => {
+  await addMessageToThread(ids.threadId, prompt, ids.fileId);
   try {
+    const run = await runAssistant(ids.threadId, ids.assistantId);
+    const messages = await runPollingOneMinute(ids.threadId, run.id);
+
     return {
       message: messages?.data[0].content[0].text.value,
-      askMore: async (prompt: string) =>
-        pdfDataExtraction(file, prompt, tools, {
-          threadId,
-          assistantId,
-          fileId,
-        }),
     };
   } catch (error) {
     console.log("error", error);
-    console.log("messages", JSON.stringify(messages, null, 2));
-    return "error";
+    return null;
   }
+};
+
+const pdfThreadSetup = async (
+  file: File,
+  tools: OpenAI.Beta.Assistants.AssistantTool[] = [{ type: "file_search" }]
+): Promise<{
+  threadId: string;
+  assistantId: string;
+  fileId: string;
+}> => {
+  const fileId = await uploadFile(file);
+  const thread = await createThread();
+  const threadId = thread.id;
+  const assistant = await createAssistant(
+    "Information Extraction Assistant",
+    "Read the document thoroughly and extract the information I am going to ask you",
+    tools
+  );
+  const assistantId = assistant.id;
+
+  return {
+    threadId,
+    assistantId,
+    fileId,
+  };
 };
 
 const oai = {
@@ -324,6 +317,7 @@ const oai = {
   deleteFile,
   runPollingOneMinute,
   pdfDataExtraction,
+  pdfThreadSetup,
 };
 
 export default oai;
