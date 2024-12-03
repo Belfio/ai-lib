@@ -64,7 +64,7 @@ export default function UploadIndex() {
     console.log("fileUrls", fileUrls);
     // Add file URLs to formData
     formData.append("attachments", JSON.stringify(fileUrls));
-    formData.append("folderId", "zzz");
+    formData.append("folderId", fileUrls[0].split("/")[1]);
 
     await fetcher.submit(formData, {
       method: "post",
@@ -76,7 +76,14 @@ export default function UploadIndex() {
   return (
     <div className="max-w-8xl mx-auto flex min-h-screen p-12">
       <div className="w-1/2 flex flex-col items-center justify-start">
-        <p>Hello I am PrimoAI</p>
+        <div className="flex flex-col gap-4 max-w-[540px] p-4">
+          <p className="text-xl font-bold">PrimoAI</p>
+          <p>
+            This demo will simulate an email service that receives a pitch deck
+            and extracts the data.
+          </p>
+          <p>Fill the form below, attach a pitch deck and click send.</p>
+        </div>
         <div className="flex flex-col gap-4 max-w-[540px]">
           <fetcher.Form
             method="post"
@@ -92,7 +99,10 @@ export default function UploadIndex() {
               className="mt-3 resize-none h-[120px]"
             />
             <Upload files={files} setFiles={setFiles} />
-            <Button type="submit">Send</Button>
+
+            <Button type="submit" disabled={fetcher.state === "submitting"}>
+              {fetcher.state === "submitting" ? "Sending..." : "Send"}
+            </Button>
           </fetcher.Form>
         </div>
       </div>

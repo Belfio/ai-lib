@@ -10,22 +10,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { queryDocument } from "@/server/queryDocument.server";
 import { parseCompany } from "@/server/parseCompany.server";
+import { useEffect, useState } from "react";
+import { CompanyProfile } from "@/lib/typesCompany";
 
 export default function Selected() {
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
+    null
+  );
+
+  //polling /api/companyProfile
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch(`/api/companyProfile?id=${email.id}`)
+        .then((res) => res.json())
+        .then((data) => setCompanyProfile(data));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const { email } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   return (
-    <div className="max-w-xl mx-auto overflow-hidden">
-      <pre>{JSON.stringify(email, null, 2)}</pre>
-      <Form method="post">
-        <Input type="text" name="prompt" />
+    <div className="max-w-2xl mx-auto overflow-hidden">
+      <p className="text-md text-gray-900 my-4">{email.body}</p>
+      <p className="text-md text-gray-900 my-4">
+        Company profile:
+        {companyProfile ? JSON.stringify(companyProfile) : " processing..."}
+      </p>
+
+      <Form method="post" className="flex gap-2 items-center">
+        <Input type="text" name="prompt" className="w-full " />
         <Button name="action" value="process" type="submit">
           Query
         </Button>
         <input type="hidden" name="id" value={email.id} />
-        <Button name="action" value="parse" type="submit">
+        {/* <Button name="action" value="parse" type="submit">
           Parse
-        </Button>
+        </Button> */}
         <input type="hidden" name="id" value={email.id} />
       </Form>
       {actionData?.response && (

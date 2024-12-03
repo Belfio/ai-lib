@@ -11,8 +11,8 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <p>Hello I am PrimoAI</p>
+    <div className="max-w-8xl mx-auto  min-h-screen p-12">
+      <h1 className="text-xl font-bold">Hello I am PrimoAI</h1>
       <div className="flex flex-col gap-4 max-w-[540px]">
         <p>
           This demo will simulate an email service that receives a pitch deck

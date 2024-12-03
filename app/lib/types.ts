@@ -4,6 +4,7 @@ export enum JobStatus {
   PENDING = "pending",
   COMPLETED = "completed",
   FAILED = "failed",
+  PROCESSING = "processing",
 }
 
 export type UploadFormData = {

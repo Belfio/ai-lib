@@ -34,7 +34,7 @@ export const emailDataExtraction = async (
         const response = await oai.pdfDataExtraction(prompt, openAiSettings);
         if (response && response.message) {
           results[key as keyof CompanyRawData] = response.message;
-          console.log(`message for ${key}:`, response.message);
+          console.log(`message for ${key}:`, response.message.slice(0, 20));
         }
       } catch (error) {
         console.error(`Error extracting data from PDF for ${key}`, error);

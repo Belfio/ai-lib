@@ -74,7 +74,7 @@ export default function ModelUpload({
             className="absolute w-full h-full custom-file-input opacity-0"
             name="attachments"
           />
-          <Button className="mt-2 px-6 text-md py-6 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <Button className="mt-2 px-6 text-md py-6text-white rounded hover:bg-blue-600">
             Select Files
           </Button>
         </div>
@@ -110,7 +110,7 @@ export default function ModelUpload({
               title="Upload your model files"
               className="absolute w-full h-full custom-file-input"
             />
-            <button className="mt-2 text-blue-500 flex items-center">
+            <button className="mt-2 flex items-center">
               <Plus size={16} className="mr-1" /> Add More Files
             </button>
           </div>

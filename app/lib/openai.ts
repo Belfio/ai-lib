@@ -170,7 +170,8 @@ const createAssistant = async (
     name,
     instructions: instruction,
     tools: tools,
-    model: "gpt-4o",
+    // model: "gpt-4o",
+    model: "gpt-4o-mini",
   });
 
   return assistant;
@@ -228,10 +229,10 @@ const runPollingOneMinute = async (threadId: string, runId: string) => {
   let counter = 0;
   while (counter < MAX_POLLING_TIME) {
     const run = await openai.beta.threads.runs.retrieve(threadId, runId);
-    console.log("run status", run.status);
+    console.log("run status (polling)", run.status);
     if (run.status === "completed") {
       const messages = await openai.beta.threads.messages.list(run.thread_id);
-      console.log(messages);
+      // console.log(messages);
       return messages;
     }
     if (run.status === "requires_action") {
@@ -249,7 +250,6 @@ const runPollingOneMinute = async (threadId: string, runId: string) => {
     }
     counter = counter + 3;
     console.log(`Elapsed seconds: ${counter}`);
-    console.log(run.status);
     console.log(run.last_error);
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }

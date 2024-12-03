@@ -26,5 +26,5 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     constIndex: "constIndex",
   };
   await db.job.create(newJob);
-  return redirect(`/success/${formData.get("folderId") as string}`);
+  return redirect(`/upload/all/selected/${formData.get("folderId") as string}`);
 };

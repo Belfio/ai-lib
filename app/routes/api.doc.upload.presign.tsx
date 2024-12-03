@@ -1,4 +1,4 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@remix-run/node";
 import s3 from "@/lib/s3";
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -7,5 +7,5 @@ export async function action({ request }: ActionFunctionArgs) {
   console.log("contentType", contentType);
   const presignedUrl = await s3.docStoring.getSignedUrl(filename, contentType);
   console.log("Presigned URL", presignedUrl);
-  return presignedUrl;
+  return json(presignedUrl);
 }
