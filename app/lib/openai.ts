@@ -223,9 +223,10 @@ const deleteFile = async (fileId: string) => {
   await openai.files.del(fileId);
 };
 
+const MAX_POLLING_TIME = 20;
 const runPollingOneMinute = async (threadId: string, runId: string) => {
   let counter = 0;
-  while (counter < 60) {
+  while (counter < MAX_POLLING_TIME) {
     const run = await openai.beta.threads.runs.retrieve(threadId, runId);
     console.log("run status", run.status);
     if (run.status === "completed") {

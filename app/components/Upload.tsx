@@ -82,8 +82,8 @@ export default function ModelUpload({
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Supported Formats</AlertTitle>
           <AlertDescription>
-            We accept various file types including .py, .pkl, .h5, .pt, .onnx,
-            .json, .yaml, and more. Total upload size limit: 5GB
+            We accept pitch deck files in .pdf format. Total upload size limit:
+            50MB
           </AlertDescription>
         </Alert>
         <div className="mt-4">
