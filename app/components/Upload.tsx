@@ -72,7 +72,7 @@ export default function ModelUpload({
             onChange={(e) => handleInput(e)}
             title="Upload your model files"
             className="absolute w-full h-full custom-file-input opacity-0"
-            name="attachments"
+            name="attachmentFiles"
           />
           <Button className="mt-2 px-6 text-md py-6text-white rounded hover:bg-blue-600">
             Select Files

@@ -9,7 +9,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const companyProfile = await db.companyProfile.get(id as string);
     console.log("companyProfile", companyProfile);
     if (!companyProfile) {
-      return json({ status: "failed" });
+      return json(null);
     }
     return json(companyProfile);
   } catch (error) {

@@ -22,20 +22,42 @@ export default function Selected() {
   const [rawData, setRawData] = useState<CompanyRawData | null>(null);
 
   useEffect(() => {
+    // if (rawData) is failed, stop anythign you got here
     const interval = setInterval(async () => {
       try {
-        const [profileRes, rawDataRes] = await Promise.all([
+        const [profileRes] = await Promise.all([
           fetch(`/api/companyProfile?id=${email.id}`),
-          fetch(`/api/rawData?id=${email.id}`),
         ]);
 
         const profileData = await profileRes.json();
+
+        setCompanyProfile(profileData);
+
+        if (profileData) {
+          clearInterval(interval);
+          console.log("Polling stopped");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        clearInterval(interval);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [email.id]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const [rawDataRes] = await Promise.all([
+          fetch(`/api/rawData?id=${email.id}`),
+        ]);
+
         const rawDataResult = await rawDataRes.json();
 
-        // setCompanyProfile(profileData);
         setRawData(rawDataResult);
 
-        if ((profileData && rawDataResult) || rawDataResult === "failed") {
+        if (rawDataResult === "failed") {
           // Start of Selection
           clearInterval(interval);
           console.log("Polling stopped");
@@ -44,9 +66,14 @@ export default function Selected() {
         console.error("Error fetching data:", error);
         clearInterval(interval);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
+  }, [email.id]);
+
+  useEffect(() => {
+    setCompanyProfile(null);
+    setRawData(null);
   }, [email.id]);
 
   return (
@@ -54,7 +81,11 @@ export default function Selected() {
       <p className="text-md text-gray-900 my-4">{email.body}</p>
       <p className="text-md text-gray-900 my-4">
         Company profile:
-        {companyProfile ? JSON.stringify(companyProfile) : " processing..."}
+        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+          {companyProfile
+            ? JSON.stringify(companyProfile, null, 2)
+            : " processing..."}
+        </pre>
       </p>
 
       <Form method="post" className="flex gap-2 items-center">

@@ -25,7 +25,11 @@ export default function UploadIndex() {
 
   const uploadToS3 = async (file: File) => {
     const folderId = randomId();
-    const fileUrl = "attachments/" + folderId + "/" + file.name;
+    const fileUrl =
+      "attachments/" +
+      folderId +
+      "/" +
+      file.name.replace(/\s+/g, "").replace(/[^\w\-]/g, "");
     // 1. Get pre-signed URL
     const response = await fetch("/api/doc/upload/presign", {
       method: "POST",
