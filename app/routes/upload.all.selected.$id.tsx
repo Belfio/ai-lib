@@ -11,25 +11,44 @@ import { Input } from "@/components/ui/input";
 import { queryDocument } from "@/server/queryDocument.server";
 import { parseCompany } from "@/server/parseCompany.server";
 import { useEffect, useState } from "react";
-import { CompanyProfile } from "@/lib/typesCompany";
+import { CompanyProfile, CompanyRawData } from "@/lib/typesCompany";
 
 export default function Selected() {
+  const { email } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
     null
   );
+  const [rawData, setRawData] = useState<CompanyRawData | null>(null);
 
-  //polling /api/companyProfile
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetch(`/api/companyProfile?id=${email.id}`)
-        .then((res) => res.json())
-        .then((data) => setCompanyProfile(data));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(async () => {
+      try {
+        const [profileRes, rawDataRes] = await Promise.all([
+          fetch(`/api/companyProfile?id=${email.id}`),
+          fetch(`/api/rawData?id=${email.id}`),
+        ]);
 
-  const { email } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+        const profileData = await profileRes.json();
+        const rawDataResult = await rawDataRes.json();
+
+        // setCompanyProfile(profileData);
+        setRawData(rawDataResult);
+
+        if ((profileData && rawDataResult) || rawDataResult === "failed") {
+          // Start of Selection
+          clearInterval(interval);
+          console.log("Polling stopped");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        clearInterval(interval);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [email.id]);
+
   return (
     <div className="max-w-2xl mx-auto overflow-hidden">
       <p className="text-md text-gray-900 my-4">{email.body}</p>
@@ -52,6 +71,18 @@ export default function Selected() {
       {actionData?.response && (
         <pre>{JSON.stringify(actionData.response, null, 2)}</pre>
       )}
+      <p className="text-md text-gray-900 my-4">
+        Extracted Raw data:
+        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+          {rawData
+            ? Object.keys(rawData).map((key) => (
+                <div key={key}>
+                  {key}: {rawData[key]}
+                </div>
+              ))
+            : " processing..."}
+        </pre>
+      </p>
     </div>
   );
 }

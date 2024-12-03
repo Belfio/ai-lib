@@ -90,7 +90,7 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     await db.companyProfile.create({
       ...companyProfile,
       emailId: email.id,
-      companyId: email.id,
+      profileId: email.id,
     });
     await db.job.create({ ...job, status: JobStatus.COMPLETED });
 

@@ -205,7 +205,7 @@ export const CompanyProfileSchema = z.object({
   // financials: FinancialMetricsSchema,
   // benchmarking: BenchmarkingMetricsSchema,
   emailId: z.string(),
-  companyId: z.string(),
+  profileId: z.string(),
 });
 
 // Company Raw Data Schema
