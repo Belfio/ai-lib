@@ -5,6 +5,7 @@ import { emailOpenAiSetup } from "./emailOpenAiSetup.server";
 import { emailDataExtraction } from "./emailDataExtraction.server";
 import { emailRawToCompanyProfile } from "./emailRawToCompanyProfile.server";
 import s3 from "@/lib/s3";
+import { docDataExtraction } from "./docDataExtraction";
 
 export const handler = async (event: DynamoDBStreamEvent) => {
   console.log("Email Subscriber event", event);
@@ -46,8 +47,23 @@ export const handler = async (event: DynamoDBStreamEvent) => {
 
     // start processing the email
     console.log("Processing email", email.id);
-    console.log("Creating a new thread");
+
+    // create a thread per attachment and extract as much informtion as possible from the doc and turn it into a json with semi-structured information
+    const raw = {
+      email: {
+        body: email.body,
+        subject: email.subject,
+        from: email.email,
+      },
+      attachments: [],
+    };
     const openAiSettings = await emailOpenAiSetup(email);
+    const companyRawData = await emailDataExtraction({
+      ...email,
+      openAiSettings,
+    });
+
+    console.log("Creating a new thread");
     if (!openAiSettings) {
       await db.job.create({ ...job, status: JobStatus.FAILED });
       console.log("Failed to setup OpenAI settings");
@@ -59,11 +75,15 @@ export const handler = async (event: DynamoDBStreamEvent) => {
       ...email,
       openAiSettings,
     });
-    console.log("Extracting data from the email");
-    const companyRawData = await emailDataExtraction({
-      ...email,
-      openAiSettings,
-    });
+
+    console.log("Extracting raw data from email and attachments");
+
+    for (const attachment of email.attachments) {
+      const docRawData = await docDataExtraction(attachment);
+      if (docRawData) {
+        raw.attachments.push(docRawData);
+      }
+    }
 
     console.log("Company Raw Data");
     if (!companyRawData) {

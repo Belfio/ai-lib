@@ -31,7 +31,10 @@ export const emailDataExtraction = async (
 
     for (const [key, prompt] of Object.entries(prompts)) {
       try {
-        const response = await oai.pdfDataExtraction(prompt, openAiSettings);
+        const response = await oai.talkToThread(prompt, {
+          threadId: openAiSettings.threadId,
+          assistantId: openAiSettings.assistantId,
+        });
         if (response && response.message) {
           results[key as keyof CompanyRawData] = response.message;
           console.log(`message for ${key}:`, response.message.slice(0, 20));

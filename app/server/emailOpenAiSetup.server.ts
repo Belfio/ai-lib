@@ -7,7 +7,7 @@ export const emailOpenAiSetup = async (
 ): Promise<{
   threadId: string;
   assistantId: string;
-  fileId: string;
+  fileIds: string[];
 } | null> => {
   const { email, attachments, subject, body } = emailData;
   console.log("email", email);
@@ -15,16 +15,22 @@ export const emailOpenAiSetup = async (
   console.log("subject", subject);
   console.log("body", body);
 
-  const attachmentFile = await s3.docStoring.get(attachments[0]);
-  const file = new File([attachmentFile], "pitchdeck.pdf", {
-    type: "application/pdf",
-  });
+  const files = [];
+  for (const attachment of attachments) {
+    const attachmentFile = await s3.docStoring.get(attachment);
+    const file = new File([attachmentFile], "pitchdeck.pdf", {
+      type: "application/pdf",
+    });
+    files.push(file);
+  }
   try {
-    const { threadId, assistantId, fileId } = await oai.pdfThreadSetup(file);
+    const { threadId, assistantId, fileIds } = await oai.filesThreadSetup(
+      files
+    );
     console.log("threadId", threadId);
     console.log("assistantId", assistantId);
-    console.log("fileId", fileId);
-    return { threadId, assistantId, fileId };
+    console.log("fileId", fileIds);
+    return { threadId, assistantId, fileIds };
   } catch (error) {
     console.error("Error extracting data from PDF", error);
   }

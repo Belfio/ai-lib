@@ -25,7 +25,7 @@ export type PitchEmailFormData = {
   openAiSettings?: {
     threadId: string;
     assistantId: string;
-    fileId: string;
+    fileIds: string[];
   };
 };
 

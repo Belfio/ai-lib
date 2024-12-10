@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { parseCompany } from "@/server/parseCompany.server";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CompanyProfile, CompanyRawData } from "@/lib/typesCompany";
 import { queryCompany } from "@/server/queryCompany.server";
 
@@ -26,12 +26,6 @@ export default function Selected() {
   const loaderData = useLoaderData<typeof loader>();
   const email = loaderData.email;
   const actionData = useActionData();
-  const [response, setResponse] = useState(() => {
-    if (actionData?.response) {
-      return actionData.response;
-    }
-    return "";
-  });
   const res = actionData?.response;
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
     loaderData.companyProfile
@@ -100,10 +94,6 @@ export default function Selected() {
     return () => clearInterval(interval);
   }, [email.id, loaderData.job, loaderData.rawData]);
 
-  console.log("response", actionData);
-  console.log("response", response);
-  console.log("response", res);
-
   return (
     <div className="max-w-2xl mx-auto overflow-hidden">
       <div className="text-md text-gray-900 my-4">{email.body}</div>
@@ -136,11 +126,6 @@ export default function Selected() {
         </div>
       )}
 
-      {response && (
-        <div className="mt-4">
-          <pre>{JSON.stringify(response, null, 2)}</pre>
-        </div>
-      )}
       {res && (
         <div className="mt-4">
           <pre>{JSON.stringify(res, null, 2)}</pre>
