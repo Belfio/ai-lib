@@ -4,25 +4,46 @@ import {
   redirect,
 } from "@remix-run/node";
 import db from "@/lib/db";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  json,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
-import { queryDocument } from "@/server/queryDocument.server";
 import { parseCompany } from "@/server/parseCompany.server";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CompanyProfile, CompanyRawData } from "@/lib/typesCompany";
+import { queryCompany } from "@/server/queryCompany.server";
 
 export default function Selected() {
-  const { email } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+  const loaderData = useLoaderData<typeof loader>();
+  const email = loaderData.email;
+  const actionData = useActionData();
+  const [response, setResponse] = useState(() => {
+    if (actionData?.response) {
+      return actionData.response;
+    }
+    return "";
+  });
+  const res = actionData?.response;
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(
-    null
+    loaderData.companyProfile
   );
-  const [rawData, setRawData] = useState<CompanyRawData | null>(null);
+  const [rawData, setRawData] = useState<CompanyRawData | null>(
+    loaderData.rawData || null
+  );
 
   useEffect(() => {
-    // if (rawData) is failed, stop anythign you got here
+    if (loaderData.job?.[0]?.status === "completed") {
+      return;
+    }
     const interval = setInterval(async () => {
       try {
         const [profileRes] = await Promise.all([
@@ -44,9 +65,17 @@ export default function Selected() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [email.id]);
+  }, [email.id, companyProfile, loaderData.job]);
 
   useEffect(() => {
+    if (loaderData.job?.[0]?.status === "completed") {
+      const rawDataResult = loaderData.rawData;
+      if (rawDataResult) {
+        setRawData(rawDataResult);
+      }
+
+      return;
+    }
     const interval = setInterval(async () => {
       try {
         const [rawDataRes] = await Promise.all([
@@ -69,51 +98,69 @@ export default function Selected() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [email.id]);
+  }, [email.id, loaderData.job, loaderData.rawData]);
 
-  useEffect(() => {
-    setCompanyProfile(null);
-    setRawData(null);
-  }, [email.id]);
+  console.log("response", actionData);
+  console.log("response", response);
+  console.log("response", res);
 
   return (
     <div className="max-w-2xl mx-auto overflow-hidden">
-      <p className="text-md text-gray-900 my-4">{email.body}</p>
-      <p className="text-md text-gray-900 my-4">
-        Company profile:
+      <div className="text-md text-gray-900 my-4">{email.body}</div>
+
+      <div className="text-md text-gray-900 my-4">
+        <div className="font-medium mb-2">Company profile:</div>
         <pre className="whitespace-pre-wrap text-sm text-gray-700">
           {companyProfile
             ? JSON.stringify(companyProfile, null, 2)
-            : " processing..."}
+            : "processing..."}
         </pre>
-      </p>
+      </div>
 
       <Form method="post" className="flex gap-2 items-center">
-        <Input type="text" name="prompt" className="w-full " />
-        <Button name="action" value="process" type="submit">
+        <Input type="text" name="prompt" className="w-full" />
+        <Button
+          name="action"
+          value="process"
+          type="submit"
+          disabled={isSubmitting}
+        >
           Query
         </Button>
         <input type="hidden" name="id" value={email.id} />
-        {/* <Button name="action" value="parse" type="submit">
-          Parse
-        </Button> */}
-        <input type="hidden" name="id" value={email.id} />
       </Form>
-      {actionData?.response && (
-        <pre>{JSON.stringify(actionData.response, null, 2)}</pre>
+
+      {isSubmitting && (
+        <div className="mt-4">
+          <pre>Asking PrimoAI...</pre>
+        </div>
       )}
-      <p className="text-md text-gray-900 my-4">
-        Extracted Raw data:
-        <pre className="whitespace-pre-wrap text-sm text-gray-700">
-          {rawData
-            ? Object.keys(rawData).map((key) => (
-                <div key={key}>
-                  {key}: {rawData[key]}
-                </div>
-              ))
-            : " processing..."}
-        </pre>
-      </p>
+
+      {response && (
+        <div className="mt-4">
+          <pre>{JSON.stringify(response, null, 2)}</pre>
+        </div>
+      )}
+      {res && (
+        <div className="mt-4">
+          <pre>{JSON.stringify(res, null, 2)}</pre>
+        </div>
+      )}
+
+      <div className="text-md text-gray-900 my-4">
+        <div className="font-medium mb-2">Extracted Raw data:</div>
+        {rawData ? (
+          <div className="whitespace-pre-wrap text-sm text-gray-700">
+            {Object.entries(rawData).map(([key, value]) => (
+              <div key={key} className="mb-2">
+                <span className="font-medium">{key}:</span> {value}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500">processing...</div>
+        )}
+      </div>
     </div>
   );
 }
@@ -125,7 +172,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     return redirect("/error");
   }
   const email = await db.email.get(id);
-  return { email };
+
+  const companyProfile = await db.companyProfile.get(id);
+  const job = await db.job.queryFromEmailId(id as string);
+  const rawData = job?.[0]?.rawData;
+  return { email, companyProfile, job, rawData };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -136,9 +187,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!id) {
       return redirect("/error");
     }
+    console.log("action", action);
     const prompt = formData.get("prompt") as string;
-    const response = await queryDocument(id as string, prompt);
-    return { response };
+    const response = await queryCompany(id as string, prompt);
+    console.log("response ? response : 'error'", response ? response : "error");
+    return { response: response ? response : "error" };
   }
   if (action === "parse") {
     if (!id) {

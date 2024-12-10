@@ -4,7 +4,6 @@ import { DynamoDBStreamEvent } from "aws-lambda";
 import { emailOpenAiSetup } from "./emailOpenAiSetup.server";
 import { emailDataExtraction } from "./emailDataExtraction.server";
 import { emailRawToCompanyProfile } from "./emailRawToCompanyProfile.server";
-import { randomId } from "@/lib/utils";
 import s3 from "@/lib/s3";
 
 export const handler = async (event: DynamoDBStreamEvent) => {
@@ -92,7 +91,11 @@ export const handler = async (event: DynamoDBStreamEvent) => {
       emailId: email.id,
       profileId: email.id,
     });
-    await db.job.create({ ...job, status: JobStatus.COMPLETED });
+    await db.job.create({
+      ...job,
+      status: JobStatus.COMPLETED,
+      rawData: companyRawData,
+    });
 
     return;
   } catch (error) {
