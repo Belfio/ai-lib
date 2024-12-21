@@ -84,9 +84,12 @@ export default $config({
         OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
       },
     });
-
+    const email = new sst.aws.Email("EmailService", {
+      sender: "a.belfiori@gmail.com",
+      // dmarc: "v=DMARC1; p=quarantine; adkim=s; aspf=s;",
+    });
     const web = new sst.aws.Remix("PrimoAI", {
-      link: [bucketDocStoring, dbEmail, dbJobs, dbCompanyProfile],
+      link: [bucketDocStoring, dbEmail, dbJobs, dbCompanyProfile, email],
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
         OPENAI_ORG: process.env.OPENAI_ORG ?? "",

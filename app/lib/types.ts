@@ -1,4 +1,17 @@
 import { CompanyRawData } from "./typesCompany";
+import { z } from "zod";
+
+export const UserSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  roles: z.array(z.string()),
+  createdAt: z.string(),
+  name: z.string(),
+  avatar: z.string(),
+  surname: z.string(),
+});
+
+export type User = z.infer<typeof UserSchema>;
 
 export enum JobStatus {
   PENDING = "pending",
