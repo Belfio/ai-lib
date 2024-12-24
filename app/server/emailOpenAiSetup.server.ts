@@ -13,6 +13,7 @@ export const emailOpenAiSetup = async (
   console.log("email", email);
   console.log("attachments", attachments);
   console.log("subject", subject);
+
   console.log("body", body);
 
   const attachmentFile = await s3.docStoring.get(attachments[0]);
