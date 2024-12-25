@@ -29,6 +29,5 @@ export const emailOpenAiSetup = async (
   } catch (error) {
     console.error("Error extracting data from PDF", error);
   }
-
   return null;
 };
