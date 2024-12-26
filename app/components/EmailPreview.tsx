@@ -1,7 +1,8 @@
 import { Paperclip } from "lucide-react";
 import { Link } from "@remix-run/react";
 
-interface EmailPreviewProps {
+export interface EmailPreviewProps {
+  id: string;
   date: string;
   sender: string;
   email: string;
@@ -12,6 +13,7 @@ interface EmailPreviewProps {
 }
 
 export default function EmailPreview({
+  id,
   date,
   sender,
   email,
@@ -21,7 +23,7 @@ export default function EmailPreview({
   companyId,
 }: EmailPreviewProps) {
   return (
-    <Link to={`/company/${companyId}`}>
+    <Link to={`/email/${id}`}>
       <div className="flex justify-start items-center">
         <div className="min-w-[180px] w-[180px] h-[120px] bg-gray-100 rounded-lg py-2 px-4">
           <p className="text-[10px] text-gray-500 font-light">{date}</p>

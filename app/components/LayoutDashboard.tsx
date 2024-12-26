@@ -1,13 +1,28 @@
 import { Outlet } from "@remix-run/react";
-import Nav from "./Nav";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { User } from "@/lib/types";
 
-export default function LayoutDashboard() {
-  return (
-    <div className="h-screen w-screen flex  ">
-      <Nav />
-      <div className="w-full h-full max-w-6xl">
-        <Outlet />
-      </div>
-    </div>
-  );
+export default function LayoutDashboard({ user }: { user: User | null }) {
+  const isLoggedIn = user !== null;
+  if (isLoggedIn) {
+    return (
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "20rem",
+            "--sidebar-width-mobile": "20rem",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar user={user} />
+        <main>
+          <SidebarTrigger />
+          <Outlet />
+        </main>
+      </SidebarProvider>
+    );
+  } else {
+    return <Outlet />;
+  }
 }

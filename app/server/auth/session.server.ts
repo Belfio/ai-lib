@@ -7,7 +7,8 @@ export const sessionStorage = createCookieSessionStorage({
     path: "/", // remember to add this so the cookie will work in all routes
     httpOnly: true, // for security reasons, make this cookie http only
     secrets: [
-      process.env.AUTH_SECRET || "0mWNLv3hBacJZHjmlHa+egTlFo2l6PnRYo0FjpBHuaQ=",
+      process.env.AUTH_SECRET ||
+        "0mWNLv3hBacJZHasdalHa+egTlFo2l6PnRYo0FjpBHuaQ=",
     ],
     // secure: process.env.NODE_ENV === "production", // enable this in prod only
     maxAge: 60 * 60 * 24 * 7, // 7 days

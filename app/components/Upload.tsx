@@ -20,13 +20,13 @@ const FileItem = ({
 );
 
 export default function ModelUpload({
-  className,
   files,
   setFiles,
+  className,
 }: {
-  className?: string;
   files: FileList | null;
   setFiles: React.Dispatch<React.SetStateAction<FileList | null>>;
+  className?: string;
 }) {
   const addFile = (file: File) => {
     setFiles((prevFiles: FileList | null) => {
@@ -59,9 +59,9 @@ export default function ModelUpload({
     }
   };
   return (
-    <div className={cn("max-w-4xl mx-auto", className)}>
-      <div className="bg-white rounded  mb-6">
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center relative">
+    <div className={cn("max-w-4xl mx-auto ", className)}>
+      <div className="bg-white rounded mb-6 ">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center relative hover:opacity-80">
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-2 text-sm text-gray-600">
             Drag and drop your model files here, or click to select files
@@ -110,24 +110,10 @@ export default function ModelUpload({
               title="Upload your model files"
               className="absolute w-full h-full custom-file-input"
             />
-            <button className="mt-2 flex items-center">
+            <button className="mt-2 flex items-center hover:opacity-80">
               <Plus size={16} className="mr-1" /> Add More Files
             </button>
           </div>
-        </div>
-        <div className="mt-6 hidden">
-          <h4 className=" font-semibold mb-2">Upload Requirements</h4>
-          <ul className="list-disc pl-5 text-sm text-gray-600">
-            <li>
-              Include all necessary files for your model (e.g., weights, config,
-              preprocessor)
-            </li>
-            <li>Provide a requirements.txt file for any dependencies</li>
-            <li>
-              Include a README.md with instructions on how to use your model
-            </li>
-            <li>Ensure your files don&apos;t contain sensitive information</li>
-          </ul>
         </div>
       </div>
     </div>

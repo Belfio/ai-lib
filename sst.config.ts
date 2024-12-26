@@ -90,6 +90,10 @@ export default $config({
       sender: "a.belfiori@gmail.com",
       // dmarc: "v=DMARC1; p=quarantine; adkim=s; aspf=s;",
     });
+    const secretDynameHashUUID = new sst.Secret(
+      "DynameHashUUID",
+      "5c9f261e-4884-4fcb-ab55-5c72f1033e85"
+    );
 
     const { dbCompany, dbUser } = PlatformStack();
     const web = new sst.aws.Remix("PrimoAI", {
@@ -106,6 +110,7 @@ export default $config({
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
         OPENAI_ORG: process.env.OPENAI_ORG ?? "",
         OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+        EMAIL_SEED: secretDynameHashUUID.value,
       },
     });
 

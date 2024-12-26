@@ -1,7 +1,18 @@
 import { User, LoginForm, UserCompanyProfile } from "@/lib/types";
 import db from "@/lib/db";
+import { v5 as uuidv5 } from "uuid";
+import bcryptjs from "bcryptjs";
 
-import { hash, compare } from "bcryptjs";
+type BcryptHash = (
+  data: string,
+  saltOrRounds: string | number
+) => Promise<string>;
+type BcryptCompare = (data: string, encrypted: string) => Promise<boolean>;
+
+const { hash, compare } = bcryptjs as {
+  hash: BcryptHash;
+  compare: BcryptCompare;
+};
 
 export async function login(
   email: string,
@@ -14,7 +25,10 @@ export async function login(
   //   createdAt: "XXX",
   //   userId: "XXX",
   // };
-  const user = await db.user.get(email);
+  console.log("process.env.EMAIL_SEED", "66ff3879-74af-48fe-87d0-a8b1cd14963f");
+  const hashedEmail = uuidv5(email, "66ff3879-74af-48fe-87d0-a8b1cd14963f");
+  console.log("hashedEmail", hashedEmail);
+  const user = await db.user.get(hashedEmail);
   if (!user) {
     console.log("no user");
     throw new Error("User not found");
@@ -23,7 +37,6 @@ export async function login(
   if (!isCorrectPassword) {
     console.log("password incorrect");
     throw new Error("Password incorrect");
-    return null;
   }
   return user;
 }
@@ -38,12 +51,20 @@ export async function register({
   console.log("registering user", email, password);
 
   try {
-    const hashedEmail = await hash(email, 10);
+    console.log(
+      "process.env.EMAIL_SEED",
+      "66ff3879-74af-48fe-87d0-a8b1cd14963f"
+    );
+    const hashedEmail = uuidv5(email, process.env.EMAIL_SEED as string);
     const user = await db.user.get(hashedEmail);
     if (user) {
       throw new Error("User already exists");
     }
-    const hashedName = await hash(companyName, 10);
+    console.log(
+      "process.env.EMAIL_SEED",
+      "66ff3879-74af-48fe-87d0-a8b1cd14963f"
+    );
+    const hashedName = uuidv5(companyName, process.env.EMAIL_SEED as string);
     const companyProfile: UserCompanyProfile = {
       PK: hashedName,
       company: companyName,
