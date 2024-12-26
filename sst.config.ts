@@ -1,5 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
+import PlatformStack from "stacks/PlatformStack";
+
 export default $config({
   app(input) {
     return {
@@ -88,8 +90,18 @@ export default $config({
       sender: "a.belfiori@gmail.com",
       // dmarc: "v=DMARC1; p=quarantine; adkim=s; aspf=s;",
     });
+
+    const { dbCompany, dbUser } = PlatformStack();
     const web = new sst.aws.Remix("PrimoAI", {
-      link: [bucketDocStoring, dbEmail, dbJobs, dbCompanyProfile, email],
+      link: [
+        bucketDocStoring,
+        dbEmail,
+        dbJobs,
+        dbCompanyProfile,
+        email,
+        dbCompany,
+        dbUser,
+      ],
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
         OPENAI_ORG: process.env.OPENAI_ORG ?? "",

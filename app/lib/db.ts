@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommandInput } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   DeleteCommand,
@@ -10,7 +10,8 @@ import {
   JobType,
   PitchEmailFormData,
   UploadFormData,
-  UserType,
+  UserCompanyProfile,
+  User,
 } from "@/lib/types";
 import { Resource } from "sst/resource";
 import { CompanyProfile } from "./typesCompany";
@@ -18,23 +19,47 @@ import { CompanyProfile } from "./typesCompany";
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const db = {
   user: {
-    create: async (userProfile: UserType) => {
-      const response = await createItem(Resource.Users.name, userProfile);
+    create: async (userProfile: User) => {
+      const response = await createItem(Resource.UserTable.name, userProfile);
       if (!response.isSuccess) {
         throw new Error(`Error creating user: ${response.msg}`);
       }
       return response;
     },
-    get: async (userId: string): Promise<UserType> => {
-      const user = (await getItem(Resource.Users.name, {
-        userId,
-      })) as UserType;
+    get: async (userId: string): Promise<User> => {
+      const user = (await getItem(Resource.UserTable.name, {
+        PK: userId,
+      })) as User;
 
       return user;
     },
     delete: async (userId: string) => {
-      await deleteItem(Resource.Users.name, {
-        userId,
+      await deleteItem(Resource.UserTable.name, {
+        PK: userId,
+      });
+    },
+  },
+  company: {
+    create: async (companyProfile: UserCompanyProfile) => {
+      const response = await createItem(
+        Resource.CompanyTable.name,
+        companyProfile
+      );
+      if (!response.isSuccess) {
+        throw new Error(`Error creating user: ${response.msg}`);
+      }
+      return response;
+    },
+    get: async (companyId: string): Promise<UserCompanyProfile> => {
+      const company = (await getItem(Resource.CompanyTable.name, {
+        PK: companyId,
+      })) as UserCompanyProfile;
+
+      return company;
+    },
+    delete: async (companyId: string) => {
+      await deleteItem(Resource.CompanyTable.name, {
+        PK: companyId,
       });
     },
   },
@@ -223,9 +248,9 @@ type responseType = {
   isSuccess: boolean;
   msg: string;
 };
-const createItem = async (
+const createItem = async <T extends Record<string, any>>(
   tableName: string,
-  item: any
+  item: T
 ): Promise<responseType> => {
   // console.log("createItem...");
   const command = new PutCommand({

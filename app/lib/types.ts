@@ -2,16 +2,39 @@ import { CompanyRawData } from "./typesCompany";
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  id: z.string(),
+  PK: z.string(),
   email: z.string().email(),
-  roles: z.array(z.string()),
+  roles: z.array(z.string()).optional(),
   createdAt: z.string(),
   name: z.string(),
-  avatar: z.string(),
+  profileImageUrl: z.string().optional(),
   surname: z.string(),
+  passwordHash: z.string(),
+  companyName: z.string(),
+  companyId: z.string(),
+  updatedAt: z.string(),
 });
 
 export type User = z.infer<typeof UserSchema>;
+
+export const UserCompanyProfileSchema = z.object({
+  PK: z.string(),
+  company: z.string(),
+  profileImageUrl: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export type UserCompanyProfile = z.infer<typeof UserCompanyProfileSchema>;
+
+export const LoginFormSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+  companyName: z.string(),
+  name: z.string().optional(),
+  surname: z.string().optional(),
+});
+export type LoginForm = z.infer<typeof LoginFormSchema>;
 
 export enum JobStatus {
   PENDING = "pending",
@@ -52,13 +75,4 @@ export type JobType = {
 export interface ResponseType {
   isSuccess: boolean;
   msg: string;
-}
-
-export interface UserType {
-  userId: string;
-  email: string;
-  name: string;
-  profileImageUrl: string;
-  createdAt: string;
-  updatedAt: string;
 }

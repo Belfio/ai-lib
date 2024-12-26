@@ -1,23 +1,28 @@
 import { Authenticator } from "remix-auth";
 import { FormStrategy } from "remix-auth-form";
-import { sessionStorage } from "~/services/session.server";
-import { Cred } from "~/@/lib/types";
+import { sessionStorage } from "./session.server";
+import { UserType } from "@/lib/types";
 import { login, register } from "./login.server";
-import { isEmail, isPassword } from "~/@/lib/utils";
+import { isEmail, isPassword } from "@/lib/utils";
 
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return and will store in the session
-export const authenticator = new Authenticator<Cred | null | undefined>(
+export const authenticator = new Authenticator<UserType | null | undefined>(
   sessionStorage
 );
 
 // Tell the Authenticator to use the form strategy
 authenticator.use(
-  new FormStrategy(async ({ form }) => {
+  new FormStrategy(async ({ form }: { form: FormData }) => {
     const email = form.get("email");
     const password = form.get("password");
+    const company = form.get("company");
     const isRegistering = JSON.parse(form.get("register") as string);
-    if (typeof email !== "string" || typeof password !== "string") {
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      typeof company !== "string"
+    ) {
       return;
     }
     if (!isEmail(email)) {
@@ -28,9 +33,8 @@ authenticator.use(
     }
     console.log("Registering", isRegistering);
     if (isRegistering) {
-      return;
       try {
-        await register({ email, password });
+        await register({ email, password, company });
       } catch (e) {
         console.log("Error registering", e);
         throw e;
