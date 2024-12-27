@@ -143,22 +143,60 @@ const db = {
   },
   job: {
     create: async (job: JobType) => {
-      await createItem(Resource.JobsTable.name, job);
+      await createItem(Resource.Jobs.name, job);
     },
-    get: async (jobId: string): Promise<JobType | null> => {
-      const job = await getItem(Resource.JobsTable.name, {
-        id: jobId,
+    get: async (
+      userCompanyId: string,
+      createdAt: string
+    ): Promise<JobType | null> => {
+      const job = await getItem(Resource.Jobs.name, {
+        userCompanyId,
+        createdAt,
       });
       return job as JobType | null;
     },
+    getLatest: async (
+      userCompanyId: string,
+      limit = 50
+    ): Promise<JobType[]> => {
+      const command = new QueryCommand({
+        TableName: Resource.Jobs.name,
+        KeyConditionExpression: "userCompanyId = :userCompanyId",
+        ExpressionAttributeValues: {
+          ":userCompanyId": userCompanyId,
+        },
+        ScanIndexForward: false, // This will return items in descending order (newest first)
+        Limit: limit,
+      });
+
+      const data = await client.send(command);
+      return (data.Items || []) as JobType[];
+    },
     queryFromEmailId: async (emailId: string): Promise<JobType[] | null> => {
       const jobs = await queryItems(
-        Resource.JobsTable.name,
+        Resource.Jobs.name,
         "EmailIndex",
         "emailId",
         emailId
       );
       return jobs.items || [];
+    },
+    queryFromJobId: async (jobId: string): Promise<JobType[] | null> => {
+      const jobs = await queryItems(
+        Resource.Jobs.name,
+        "jobIdIndex",
+        "jobId",
+        jobId
+      );
+      return jobs.items || [];
+    },
+    delete: async (userCompanyId: string, createdAt: string) => {
+      console.log("Deleting job", userCompanyId, createdAt);
+      const res = await deleteItem(Resource.Jobs.name, {
+        userCompanyId,
+        createdAt,
+      });
+      console.log("Delete job response", res);
     },
   },
 };

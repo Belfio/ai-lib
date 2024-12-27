@@ -3,74 +3,55 @@ import {
   Dialog,
   DialogContent,
   //   DialogDescription,
-  DialogFooter,
+  //   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
 import Upload from "./Upload";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useFetcher } from "@remix-run/react";
+import { UserContext } from "@/providers/userContext";
+import primo from "@/lib/primoClient";
 
 export function DialogLoadDocs() {
+  const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<FileList | null>(null);
   const fetcher = useFetcher();
-  const uploadToS3 = async (file: File) => {
-    const folderId = randomId();
-    const fileUrl =
-      "attachments/" +
-      folderId +
-      "/" +
-      file.name.replace(/\s+/g, "").replace(/[^\w\-]/g, "");
-    // 1. Get pre-signed URL
-    const response = await fetch("/api/doc/upload/presign", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filename: fileUrl,
-        contentType: file.type,
-      }),
-    });
-
-    const signedUrl = await response.json();
-
-    console.log("signedUrl", signedUrl);
-    // 2. Upload directly to S3
-
-    await fetch(signedUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type,
-      },
-    });
-    return fileUrl;
-  };
-
+  const { user } = useContext(UserContext);
+  const [uploading, setUploading] = useState(false);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setUploading(true);
     e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
     if (!files) return;
-
+    if (!user) return;
     // Upload files first and get their URLs/keys
+    const folderId = user.PK;
     const fileUrls = await Promise.all(
-      Array.from(files).map((f) => uploadToS3(f))
+      Array.from(files).map((f) => primo.uploadFileToS3(f, folderId))
     );
 
     console.log("fileUrls", fileUrls);
     // Add file URLs to formData
-    formData.append("attachments", JSON.stringify(fileUrls));
-    formData.append("folderId", fileUrls[0].split("/")[1]);
-
-    await fetcher.submit(formData, {
-      method: "post",
-      encType: "multipart/form-data",
-      action: "/api/doc/upload/form",
+    const jobId = await primo.analyseFiles({
+      fileUrls,
+      folderId,
+      userId: user?.PK || "unknownUser",
+      userCompanyId: user?.companyId || "unknownCompany",
+      creator: {
+        email: user.email,
+        name: user.name,
+        surname: user.surname,
+      },
     });
+    console.log("jobId", jobId);
+    setUploading(false);
+    setOpen(false);
   };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>Load Documents</Button>
       </DialogTrigger>
@@ -86,8 +67,8 @@ export function DialogLoadDocs() {
         >
           <Upload files={files} setFiles={setFiles} />
           <div className="flex justify-end">
-            <Button type="submit" disabled={fetcher.state === "submitting"}>
-              {fetcher.state === "submitting" ? "Sending..." : "Upload"}
+            <Button type="submit" disabled={uploading}>
+              {uploading ? "Uploading..." : "Upload"}
             </Button>
           </div>
         </fetcher.Form>

@@ -2,7 +2,7 @@ import { CompanyRawData } from "@/lib/typesCompany";
 import { PitchEmailFormData } from "@/lib/types";
 import oai from "@/lib/openai";
 
-export const emailDataExtraction = async (
+export const dataExtraction = async (
   email: PitchEmailFormData
 ): Promise<CompanyRawData | null> => {
   const { email: emailAddress, openAiSettings } = email;

@@ -18,7 +18,7 @@ export default $config({
     //       : "a.belfiori@gmail.com",
     // });
 
-    const bucketDocStoring = new sst.aws.Bucket("DocStoring", {});
+    const bucketDocStoring = new sst.aws.Bucket("DocStoring");
     const dbEmail = new sst.aws.Dynamo("EmailTable", {
       fields: {
         email: "string",
@@ -41,7 +41,7 @@ export default $config({
       },
     });
 
-    const dbJobs = new sst.aws.Dynamo("JobsTable", {
+    const dbJobsDepr = new sst.aws.Dynamo("JobsTable", {
       fields: {
         emailId: "string",
         id: "string",
@@ -61,6 +61,27 @@ export default $config({
       stream: "keys-only",
     });
 
+    const dbJobs = new sst.aws.Dynamo("Jobs", {
+      fields: {
+        emailId: "string",
+        jobId: "string",
+        userCompanyId: "string",
+        createdAt: "string",
+      },
+      primaryIndex: {
+        hashKey: "userCompanyId",
+        rangeKey: "createdAt",
+      },
+      globalIndexes: {
+        EmailIndex: {
+          hashKey: "emailId",
+        },
+        jobIdIndex: {
+          hashKey: "jobId",
+        },
+      },
+      stream: "keys-only",
+    });
     const dbCompanyProfile = new sst.aws.Dynamo("CompanyProfileTable", {
       fields: {
         profileId: "string",
@@ -76,9 +97,9 @@ export default $config({
       },
     });
 
-    dbJobs.subscribe("EmailSubscriber", {
+    dbJobs.subscribe("jobSubscriber", {
       link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
-      handler: "app/server/emailSubscriber.handler",
+      handler: "app/server/subscribers/jobSubscriber.handler",
       timeout: "10 minutes",
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
@@ -86,10 +107,21 @@ export default $config({
         OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
       },
     });
+    // dbJobs.subscribe("EmailSubscriber", {
+    //   link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
+    //   handler: "app/server/emailSubscriber.handler",
+    //   timeout: "10 minutes",
+    //   environment: {
+    //     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
+    //     OPENAI_ORG: process.env.OPENAI_ORG ?? "",
+    //     OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+    //   },
+    // });
+
     const email = new sst.aws.Email("EmailService", {
       sender: "a.belfiori@gmail.com",
-      // dmarc: "v=DMARC1; p=quarantine; adkim=s; aspf=s;",
     });
+
     const secretDynameHashUUID = new sst.Secret(
       "DynameHashUUID",
       "5c9f261e-4884-4fcb-ab55-5c72f1033e85"

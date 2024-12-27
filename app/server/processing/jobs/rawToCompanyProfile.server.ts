@@ -6,7 +6,7 @@ import {
 
 import oai from "@/lib/openai";
 
-export const emailRawToCompanyProfile = async (
+export const rawToCompanyProfile = async (
   rawData: CompanyRawData
 ): Promise<CompanyProfile | null> => {
   try {

@@ -171,10 +171,13 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   if (!id) {
     return redirect("/error");
   }
-  const email = await db.email.get(id);
-
-  const companyProfile = await db.companyProfile.get(id);
-  const job = await db.job.queryFromEmailId(id as string);
+  console.log("id", id);
+  const job = await db.job.get(id);
+  console.log("job", job);
+  const email = await db.email.get(job?.emailId as string);
+  console.log("email", email);
+  const companyProfile = await db.companyProfile.get(email.id);
+  console.log("companyProfile", companyProfile);
   const rawData = job?.[0]?.rawData;
   return { email, companyProfile, job, rawData };
 };

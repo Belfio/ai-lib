@@ -1,14 +1,22 @@
-import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import db from "@/lib/db";
-import { randomId } from "@/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 
-import { JobStatus, JobType, PitchEmailFormData } from "@/lib/types";
+import {
+  JobFileType,
+  JobStatus,
+  JobType,
+  PitchEmailFormData,
+} from "@/lib/types";
+// Upload Form receives a formData object containing
+// email, subject, body, attachments in the form of S3 URLs and folderId
+// and creates a new email and job
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  try {
-    console.log("form data handler");
+  console.log("form data handler");
 
-    const formData = await request.formData();
+  const formData = await request.formData();
+  try {
     const uploadData: PitchEmailFormData = {
       email: formData.get("email") as string,
       subject: formData.get("subject") as string,
@@ -21,10 +29,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log("new email", uploadData);
     await db.email.create(uploadData);
     const newJob: JobType = {
-      id: randomId(),
+      jobId: uuidv4(),
       emailId: formData.get("folderId") as string,
+      fileUrls: JSON.parse(formData.get("attachments") as string),
       status: JobStatus.PENDING,
       constIndex: "constIndex",
+      type: JobFileType.EMAIL,
+      userCompanyId: formData.get("userCompanyId") as string,
+      createdAt: new Date().toISOString(),
     };
     await db.job.create(newJob);
     return redirect(
@@ -32,6 +44,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   } catch (error) {
     console.error("error in form data handler", error);
-    return json({ status: "failed" });
+    return { status: "failed" };
   }
 };

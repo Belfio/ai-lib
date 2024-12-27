@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import { emailRawToCompanyProfile } from "./emailRawToCompanyProfile.server";
+import { emailRawToCompanyProfile } from "./processing/jobs/rawToCompanyProfile.server";
 import { JobStatus } from "@/lib/types";
 // import { randomId } from "@/lib/utils";
 import s3 from "@/lib/s3";

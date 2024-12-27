@@ -1,53 +1,38 @@
 import db from "@/lib/db";
-import { JobStatus } from "@/lib/types";
-import { DynamoDBStreamEvent } from "aws-lambda";
-import { emailOpenAiSetup } from "./emailOpenAiSetup.server";
-import { emailDataExtraction } from "./emailDataExtraction.server";
-import { emailRawToCompanyProfile } from "./emailRawToCompanyProfile.server";
+import { JobStatus, JobType } from "@/lib/types";
+import { fileDataExtraction } from "./fileDataExtraction.server";
+import { rawToCompanyProfile } from "./rawToCompanyProfile.server";
 import s3 from "@/lib/s3";
+import { fileOpenAiSetup } from "./fileOpenAiSetup.server";
 
-export const handler = async (event: DynamoDBStreamEvent) => {
-  console.log("Email Subscriber event", event);
-  console.log(
-    "Email Subscriber event",
-    event.Records[0]?.dynamodb?.Keys?.id?.S
-  );
-
-  const jobId = event.Records[0]?.dynamodb?.Keys?.id?.S;
-  const eventName = event.Records[0]?.eventName;
-  console.log("Event Name", eventName);
-  if (!jobId) {
-    console.log("No Job Id");
-    return;
-  }
-
-  const job = await db.job.get(jobId);
+export const file2Analysis = async (job: JobType) => {
+  console.log("File 2 Analysis Handler", job.jobId);
+  const jobId = job.jobId;
   if (!job) {
     console.log("No Job", jobId);
     return;
   }
+  if (!job.emailId) {
+    console.log("No Email Id", jobId);
+    return;
+  }
+  if (job.status !== JobStatus.PENDING) {
+    console.log("Job not pending", jobId);
+    return;
+  }
   try {
-    if (job.status !== JobStatus.PENDING) {
-      return;
-    }
     await db.job.create({ ...job, status: JobStatus.PROCESSING });
 
     console.log("Job", job);
 
-    const email = await db.email.get(job.emailId);
-
-    console.log("Email", email);
-
-    if (!email) {
+    // start processing the file
+    console.log("Creating a new thread");
+    if (!job.fileUrls) {
       await db.job.create({ ...job, status: JobStatus.FAILED });
-      console.log("Failed to get email");
+      console.log("No file urls");
       return;
     }
-
-    // start processing the email
-    console.log("Processing email", email.id);
-    console.log("Creating a new thread");
-    const openAiSettings = await emailOpenAiSetup(email);
+    const openAiSettings = await fileOpenAiSetup(job.fileUrls);
     if (!openAiSettings) {
       await db.job.create({ ...job, status: JobStatus.FAILED });
       console.log("Failed to setup OpenAI settings");
@@ -55,15 +40,8 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     }
     console.log("Saving the new thread");
 
-    await db.email.create({
-      ...email,
-      openAiSettings,
-    });
     console.log("Extracting data from the email");
-    const companyRawData = await emailDataExtraction({
-      ...email,
-      openAiSettings,
-    });
+    const companyRawData = await fileDataExtraction(openAiSettings);
 
     console.log("Company Raw Data");
     if (!companyRawData) {
@@ -78,8 +56,8 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     const asyncIterable = (async function* () {
       yield uint8Data;
     })();
-    await s3.docStoring.upload(asyncIterable, job.id, "application/json");
-    const companyProfile = await emailRawToCompanyProfile(companyRawData);
+    await s3.docStoring.upload(asyncIterable, job.jobId, "application/json");
+    const companyProfile = await rawToCompanyProfile(companyRawData);
 
     if (!companyProfile) {
       await db.job.create({ ...job, status: JobStatus.FAILED });
@@ -88,8 +66,8 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     }
     await db.companyProfile.create({
       ...companyProfile,
-      emailId: email.id,
-      profileId: email.id,
+      emailId: job.emailId,
+      profileId: job.jobId,
     });
     await db.job.create({
       ...job,

@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   ArrowRightLeft,
   BookOpen,
+  Building,
   Command,
   Home,
   Key,
@@ -52,20 +53,16 @@ const data = {
       ],
     },
     {
-      title: "Credentials",
-      url: "/credentials",
-      icon: Key,
+      title: "Companies",
+      url: "/companies",
+      icon: Building,
       items: [
         {
-          title: "Genesis",
+          title: "Recent",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Search",
           url: "#",
         },
       ],
@@ -117,6 +114,25 @@ const data = {
       ],
     },
     {
+      title: "Credentials",
+      url: "/credentials",
+      icon: Key,
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
+    },
+    {
       title: "Settings",
       url: "#",
       icon: Settings2,
@@ -152,23 +168,23 @@ const data = {
       icon: Send,
     },
   ],
-  // projects: [
-  //   {
-  //     name: "Design Engineering",
-  //     url: "/projects/design-engineering",
-  //     icon: Frame,
-  //   },
-  //   {
-  //     name: "Sales & Marketing",
-  //     url: "/projects/sales-marketing",
-  //     icon: PieChart,
-  //   },
-  //   {
-  //     name: "Travel",
-  //     url: "/projects/travel",
-  //     icon: Map,
-  //   },
-  // ],
+  projects: [
+    //   {
+    //     name: "Design Engineering",
+    //     url: "/projects/design-engineering",
+    //     icon: Frame,
+    //   },
+    //   {
+    //     name: "Sales & Marketing",
+    //     url: "/projects/sales-marketing",
+    //     icon: PieChart,
+    //   },
+    //   {
+    //     name: "Travel",
+    //     url: "/projects/travel",
+    //     icon: Map,
+    //   },
+  ],
 };
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: User;
@@ -204,7 +220,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {data?.projects && <NavProjects projects={data.projects} />}
+        {data.projects.length > 0 && <NavProjects projects={data.projects} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

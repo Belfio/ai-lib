@@ -65,13 +65,28 @@ export type PitchEmailFormData = {
   };
 };
 
+export enum JobFileType {
+  EMAIL = "email",
+  FILE = "file",
+}
+
 export type JobType = {
-  id: string;
-  emailId: string;
+  jobId: string;
+  type: JobFileType;
+  emailId?: string;
   status: JobStatus;
   constIndex: "constIndex";
   rawData?: CompanyRawData;
+  fileUrls?: string[];
+  userCompanyId: string;
+  createdAt: string;
+  creator: {
+    email: string;
+    name: string;
+    surname: string;
+  };
 };
+
 export interface ResponseType {
   isSuccess: boolean;
   msg: string;

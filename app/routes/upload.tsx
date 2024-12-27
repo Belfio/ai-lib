@@ -1,11 +1,11 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Outlet, useActionData, useFetcher } from "@remix-run/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Upload from "@/components/Upload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { randomId } from "@/lib/utils";
+import { UserContext } from "@/providers/userContext";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,16 +20,16 @@ export default function UploadIndex() {
     error: string;
     missingFields: string[];
   };
-
+  const { user } = useContext(UserContext);
   const [files, setFiles] = useState<FileList | null>(null);
 
   const uploadToS3 = async (file: File) => {
-    const folderId = randomId();
+    const folderId = user?.PK;
     const fileUrl =
       "attachments/" +
       folderId +
       "/" +
-      file.name.replace(/\s+/g, "").replace(/[^\w\-]/g, "");
+      file.name.replace(/\s+/g, "").replace(/[^\w-]/g, "");
     // 1. Get pre-signed URL
     const response = await fetch("/api/doc/upload/presign", {
       method: "POST",
