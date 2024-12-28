@@ -66,6 +66,7 @@ export default $config({
       fields: {
         profileId: "string",
         constIndex: "string",
+        firmId: "string",
       },
       primaryIndex: {
         hashKey: "profileId",
@@ -73,6 +74,9 @@ export default $config({
       globalIndexes: {
         ConstIndex: {
           hashKey: "constIndex",
+        },
+        FirmIndex: {
+          hashKey: "firmId",
         },
       },
     });

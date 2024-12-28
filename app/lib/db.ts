@@ -140,6 +140,20 @@ const db = {
       });
       return profile as CompanyProfile | null;
     },
+    delete: async (profileId: string) => {
+      await deleteItem(Resource.CompanyProfileTable.name, {
+        profileId,
+      });
+    },
+    getAll: async (firmId: string): Promise<CompanyProfile[]> => {
+      const profiles = await queryItems(
+        Resource.CompanyProfileTable.name,
+        "FirmIndex",
+        "firmId",
+        firmId
+      );
+      return profiles.items || [];
+    },
   },
   job: {
     create: async (job: JobType) => {

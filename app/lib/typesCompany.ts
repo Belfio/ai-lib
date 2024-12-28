@@ -204,8 +204,12 @@ export const CompanyProfileSchema = z.object({
   // ownershipInfo: OwnershipInfoSchema,
   // financials: FinancialMetricsSchema,
   // benchmarking: BenchmarkingMetricsSchema,
-  emailId: z.string(),
+  emailId: z.string().optional(),
   profileId: z.string(),
+  firmId: z.string(),
+  jobId: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 // Company Raw Data Schema

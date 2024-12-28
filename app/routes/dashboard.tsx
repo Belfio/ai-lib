@@ -3,7 +3,7 @@ import EmailPreview, { EmailPreviewProps } from "@/components/EmailPreview";
 import DocPreview from "@/components/DocPreview";
 import { useEffect, useContext, useState } from "react";
 import { UserContext } from "@/providers/userContext";
-import { Outlet, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -16,11 +16,9 @@ import db from "@/lib/db";
 import { JobType } from "@/lib/types";
 import s3 from "@/lib/s3";
 import DrawerDoc from "@/components/DrawerDoc";
-import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { user, lastDocs, lastNotes, jobs, jobId } =
-    useLoaderData<typeof loader>();
+  const { user, lastDocs, jobs, lastEmails } = useLoaderData<typeof loader>();
   const { setUser } = useContext(UserContext);
   const [open, setOpen] = useState(false);
   const [job, setJob] = useState<JobType | null>(null);
@@ -29,7 +27,7 @@ export default function Dashboard() {
   }, [user, setUser]);
 
   return (
-    <div className="justify-start items-center w-full h-full p-6 flex flex-col gap-6 md:min-w-[800px]">
+    <div className="justify-start items-center w-full h-full p-6 flex flex-col gap-6 md:min-w-[800px] md:max-w-[1024px]">
       <div className="flex justify-end items-center w-full">
         <DialogLoadDocs />
       </div>
@@ -44,19 +42,7 @@ export default function Dashboard() {
             jobs.map((job: JobType) => (
               <DocPreview
                 key={job.jobId}
-                id={job.jobId}
-                date={job.createdAt}
-                uploader={`${job?.creator?.name || ""} ${
-                  job?.creator?.surname || ""
-                }`}
-                numberOfDocs={job.fileUrls?.length || 0}
-                status={job.status}
-                title={job.rawData?.product || "Processing.."}
-                summary={job.rawData?.solution || ""}
-                companyName={job.rawData?.company || ""}
-                companyId={job.emailId || ""}
-                fileUrls={job.fileUrls || []}
-                firmId={user.companyId}
+                job={job}
                 onClick={() => {
                   setOpen(true);
                   setJob(job);
@@ -101,10 +87,10 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-col gap-2 justify-start items-start w-full ">
-        <p className="text-sm text-gray-500 font-light">Notes</p>
+        <p className="text-sm text-gray-500 font-light">Emails</p>
         <div className="flex flex-col gap-2 p-4 border rounded-lg w-full">
-          {lastNotes.length > 0 ? (
-            lastNotes.map((email: EmailPreviewProps) => (
+          {lastEmails.length > 0 ? (
+            lastEmails.map((email: EmailPreviewProps) => (
               <EmailPreview
                 key={email.id}
                 id={email.id}
@@ -140,18 +126,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const jobs = await db.job.getLatest(user.companyId, 5);
   const lastDocs: EmailPreviewProps[] = [];
-  const lastNotes: EmailPreviewProps[] = [];
-  const url = new URL(request.url);
-  const jobId = url.pathname.includes("/doc/")
-    ? url.pathname.split("/doc/")[1]
-    : null;
-  console.log("jobId", jobId);
+  const lastEmails: EmailPreviewProps[] = [];
+
   return {
     user,
     jobs: jobs || [],
     lastDocs,
-    lastNotes,
-    jobId,
+    lastEmails,
   };
 }
 

@@ -68,11 +68,20 @@ export const fileAnalysis = async (jobId: string) => {
       ...companyProfile,
       emailId: job.emailId,
       profileId: job.jobId,
+      firmId: job.firmId,
+      jobId: job.jobId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
     await db.job.create({
       ...job,
       status: JobStatus.COMPLETED,
       rawData: companyRawData,
+      updatedAt: new Date().toISOString(),
+      companyDetails: {
+        companyName: companyProfile.basicInfo.companyName,
+        companyId: job.jobId,
+      },
     });
 
     return;

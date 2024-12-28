@@ -85,6 +85,11 @@ export type JobType = {
     name: string;
     surname: string;
   };
+  updatedAt?: string;
+  companyDetails?: {
+    companyName: string;
+    companyId: string;
+  };
 };
 
 export interface ResponseType {
