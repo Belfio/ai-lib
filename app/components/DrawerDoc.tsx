@@ -72,115 +72,32 @@ export default function DrawerDoc({
                   {job?.status}
                 </span>
               </div>
-              <div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >= ProcessPhase.DATA_UPLOADING
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >= ProcessPhase.DATA_UPLOADING
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>{ProcessPhaseSentence[ProcessPhase.DATA_UPLOADING]}</p>
-                </div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >=
-                    ProcessPhase.INFORMATION_EXTRACTION
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >=
-                      ProcessPhase.INFORMATION_EXTRACTION
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>
-                    {ProcessPhaseSentence[ProcessPhase.INFORMATION_EXTRACTION]}
-                  </p>
-                </div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >=
-                    ProcessPhase.VECTOR_DATABASE_CREATION
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >=
-                      ProcessPhase.VECTOR_DATABASE_CREATION
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>
-                    {
-                      ProcessPhaseSentence[
-                        ProcessPhase.VECTOR_DATABASE_CREATION
-                      ]
-                    }
-                  </p>
-                </div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >= ProcessPhase.MODEL_TRAINING
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >= ProcessPhase.MODEL_TRAINING
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>{ProcessPhaseSentence[ProcessPhase.MODEL_TRAINING]}</p>
-                </div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >= ProcessPhase.MODEL_EVALUATION
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >= ProcessPhase.MODEL_EVALUATION
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>{ProcessPhaseSentence[ProcessPhase.MODEL_EVALUATION]}</p>
-                </div>
-                <div
-                  className={`flex items-center space-x-2 w-full ${
-                    Number(job?.processPhase) >= ProcessPhase.MODEL_DEPLOYMENT
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      Number(job?.processPhase) >= ProcessPhase.MODEL_DEPLOYMENT
-                        ? "bg-green-500"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                  <p>{ProcessPhaseSentence[ProcessPhase.MODEL_DEPLOYMENT]}</p>
-                </div>
+              <div className="space-y-2">
+                {Object.keys(ProcessPhase)
+                  .filter((key) => isNaN(Number(key)))
+                  .map((phaseKey) => {
+                    const phase =
+                      ProcessPhase[phaseKey as keyof typeof ProcessPhase];
+                    return (
+                      <div
+                        key={phase}
+                        className={`flex items-center space-x-2 w-full ${
+                          Number(job?.processPhase) >= phase
+                            ? "opacity-100"
+                            : "opacity-50"
+                        }`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            Number(job?.processPhase) >= phase
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        />
+                        <p>{ProcessPhaseSentence[phase]}</p>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
 

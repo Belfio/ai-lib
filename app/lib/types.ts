@@ -100,6 +100,7 @@ export enum ProcessPhase {
   MODEL_TRAINING = 4,
   MODEL_EVALUATION = 5,
   MODEL_DEPLOYMENT = 6,
+  PROFILE_EXTRACTION = 7,
 }
 
 export const ProcessPhaseSentence = {
@@ -109,6 +110,7 @@ export const ProcessPhaseSentence = {
   [ProcessPhase.MODEL_TRAINING]: "Model training",
   [ProcessPhase.MODEL_EVALUATION]: "Model evaluation",
   [ProcessPhase.MODEL_DEPLOYMENT]: "Model deployment",
+  [ProcessPhase.PROFILE_EXTRACTION]: "Profile extraction",
 };
 
 export interface ResponseType {
