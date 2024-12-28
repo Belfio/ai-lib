@@ -24,7 +24,7 @@ import {
 } from "@/lib/types";
 ("use client");
 
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Download } from "lucide-react";
 
 import {
   Collapsible,
@@ -102,11 +102,20 @@ export default function DrawerDoc({
             </div>
 
             <Card className="bg-gray-100 my-8 py-0">
-              <CardContent className="flex flex-col items-start justify-center space-y-2 pt-2 pb-4">
-                <p>Company name: {job?.companyDetails?.companyName}</p>
-                <Link to={`/company/${job?.companyDetails?.companyId}`}>
-                  <Button>View company</Button>
-                </Link>
+              <CardContent className="flex flex-col items-start justify-center space-y-2 pt-2 pb-4 w-full">
+                <p className="p-0">
+                  Company name: {job?.companyDetails?.companyName}
+                </p>
+                <div className="w-full flex justify-start mt-2">
+                  <Link to={`/company/${job?.companyDetails?.companyId}`}>
+                    <Button>Profile page</Button>
+                  </Link>
+                  <Link to={`/company/${job?.companyDetails?.companyId}`}>
+                    <Button variant="outline" className="ml-2">
+                      One pager <Download className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
             <div className="w-full mt-4">
