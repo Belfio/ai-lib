@@ -31,13 +31,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const newJob: JobType = {
       jobId: uuidv4(),
       emailId: formData.get("folderId") as string,
-      fileUrls: JSON.parse(formData.get("attachments") as string),
+      fileUrls: formData.get("attachments")?.toString()
+        ? [formData.get("attachments")!.toString()]
+        : [],
       status: JobStatus.PENDING,
       constIndex: "constIndex",
       type: JobFileType.EMAIL,
-      userCompanyId: formData.get("userCompanyId") as string,
+      firmId: formData.get("firmId") as string,
       createdAt: new Date().toISOString(),
+      creator: {
+        email: formData.get("email") as string,
+        name: formData.get("name") as string,
+        surname: formData.get("surname") as string,
+      },
     };
+
     await db.job.create(newJob);
     return redirect(
       `/upload/all/selected/${formData.get("folderId") as string}`

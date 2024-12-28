@@ -1,9 +1,11 @@
 import { Outlet } from "@remix-run/react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { User } from "@/lib/types";
+import { useContext } from "react";
+import { UserContext } from "@/providers/userContext";
 
-export default function LayoutDashboard({ user }: { user: User | null }) {
+export default function LayoutDashboard() {
+  const { user } = useContext(UserContext);
   const isLoggedIn = user !== null;
   if (isLoggedIn) {
     return (

@@ -1,83 +1,85 @@
 import db from "@/lib/db";
-import { JobStatus, JobType } from "@/lib/types";
-
-import oai from "@/lib/openai";
-import s3 from "@/lib/s3";
+import { JobStatus } from "@/lib/types";
+import { fileDataExtraction } from "./fileDataExtraction.server";
 import { rawToCompanyProfile } from "./rawToCompanyProfile.server";
-import { CompanyRawData } from "@/lib/typesCompany";
+import s3 from "@/lib/s3";
+import { fileOpenAiSetup } from "./fileOpenAiSetup.server";
 
-export const fileAnalysis = async (job: JobType) => {
-  console.log("File Analysis Handler event", job.id);
-  const jobId = job.id;
+export const fileAnalysis = async (jobId: string) => {
+  console.log("File Analysis Handler", jobId);
+  const job = (await db.job.queryFromJobId(jobId))?.[0];
+  if (!job) {
+    console.log("No Job", jobId);
+    return;
+  }
+  if (!job.emailId) {
+    console.log("No Email Id", jobId);
+    return;
+  }
+  if (job.status !== JobStatus.PENDING) {
+    console.log("Job not pending", jobId);
+    return;
+  }
   try {
-    // Process each record (in case of batch)
+    await db.job.create({ ...job, status: JobStatus.PROCESSING });
 
-    if (!job) {
-      console.log("No Job");
+    console.log("Job", job);
+
+    // start processing the file
+    console.log("Creating a new thread");
+    if (!job.fileUrls) {
+      await db.job.create({ ...job, status: JobStatus.FAILED });
+      console.log("No file urls");
       return;
     }
-    const s3Key = job.files[0];
-    // Extract data using OpenAI
-    const rawData: CompanyRawData = {
-      company: "Extract all information about the company",
-      businessModel: "Extract all information about the business model",
-      problem: "Extract all information about the problem being solved",
-      solution: "Extract all information about the solution",
-      product: "Extract all information about the product",
-      market: "Extract all information about the market",
-      team: "Extract all information about the team",
-      raising: "Extract all information about fundraising",
-      financials: "Extract all information about financials",
-      milestones: "Extract all information about milestones",
-      other: "Extract any other relevant information",
-    };
-
-    // Process each aspect of the company data
-    for (const [key, prompt] of Object.entries(rawData)) {
-      const result = await oai.pdfDataExtraction(prompt, {
-        threadId: jobId,
-        assistantId: jobId,
-        fileId: s3Key,
-      });
-
-      if (result?.message) {
-        rawData[key as keyof CompanyRawData] = result.message;
-      }
+    const openAiSettings = await fileOpenAiSetup(job.fileUrls);
+    if (!openAiSettings) {
+      await db.job.create({ ...job, status: JobStatus.FAILED });
+      console.log("Failed to setup OpenAI settings");
+      return;
     }
+    console.log("Saving the new thread");
 
-    // Save raw data to S3
-    const data = JSON.stringify(rawData);
+    console.log("Extracting data from the email");
+    const companyRawData = await fileDataExtraction(openAiSettings);
+
+    console.log("Company Raw Data");
+    if (!companyRawData) {
+      await db.job.create({ ...job, status: JobStatus.FAILED });
+      console.log("Failed to extract data from email");
+      return;
+    }
+    console.log("Company Raw Data writing to S3");
+    await db.job.create({ ...job, rawData: companyRawData });
+    const data = JSON.stringify(companyRawData);
     const uint8Data = new TextEncoder().encode(data);
     const asyncIterable = (async function* () {
       yield uint8Data;
     })();
-    await s3.docStoring.upload(asyncIterable, jobId, "application/json");
+    await s3.docStoring.upload(asyncIterable, job.jobId, "application/json");
+    const companyProfile = await rawToCompanyProfile(companyRawData);
 
-    // Convert raw data to company profile
-    const companyProfile = await rawToCompanyProfile(rawData);
     if (!companyProfile) {
       await db.job.create({ ...job, status: JobStatus.FAILED });
       console.log("Failed to parse raw data into company profile");
-      throw new Error("Failed to parse raw data into company profile");
+      return;
     }
-
-    // Save company profile
     await db.companyProfile.create({
       ...companyProfile,
-      profileId: jobId,
+      emailId: job.emailId,
+      profileId: job.jobId,
     });
-
-    // Update job status
     await db.job.create({
       ...job,
       status: JobStatus.COMPLETED,
-      rawData,
+      rawData: companyRawData,
     });
 
-    console.log(`Successfully processed file: ${s3Key}`);
-    return { statusCode: 200, body: "Processing complete" };
+    return;
   } catch (error) {
-    console.error("Error in file analysis handler:", error);
-    throw error;
+    console.error("Error in email subscriber", error);
+    await db.job.create({ ...job, status: JobStatus.FAILED });
+
+    return;
   }
 };

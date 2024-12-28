@@ -2,7 +2,7 @@ export type FilesAnalyseData = {
   userId: string;
   folderId: string;
   fileUrls: string[];
-  userCompanyId: string;
+  firmId: string;
   creator: {
     email: string;
     name: string;
@@ -17,7 +17,7 @@ export type EmailAnalyseData = {
   attachments: string[];
   id: string;
   userId: string;
-  userCompanyId: string;
+  firmId: string;
 };
 
 const primo = {
@@ -25,7 +25,7 @@ const primo = {
     attachments,
     id,
     email,
-    userCompanyId,
+    firmId,
     userId,
     subject,
     body,
@@ -36,7 +36,7 @@ const primo = {
       body,
       attachments,
       id,
-      userCompanyId,
+      firmId,
       userId,
     };
 
@@ -50,13 +50,13 @@ const primo = {
     fileUrls,
     folderId,
     userId,
-    userCompanyId,
+    firmId,
     creator,
   }: {
     fileUrls: string[];
     folderId: string;
     userId: string;
-    userCompanyId: string;
+    firmId: string;
     creator: {
       email: string;
       name: string;
@@ -68,7 +68,7 @@ const primo = {
       folderId,
       fileUrls,
       userId,
-      userCompanyId,
+      firmId,
       creator,
     };
 

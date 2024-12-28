@@ -4,15 +4,12 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
 import LayoutDashboard from "./components/LayoutDashboard";
 import { UserProvider } from "./providers/userContext";
-import { isAuthenticated } from "./server/auth/auth.server";
-import { User } from "./lib/types";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -28,7 +25,6 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout() {
-  const { user } = useLoaderData<typeof loader>() as { user: User | null };
   return (
     <html lang="en">
       <head>
@@ -39,7 +35,7 @@ export function Layout() {
       </head>
       <body>
         <UserProvider>
-          <LayoutDashboard user={user} />
+          <LayoutDashboard />
         </UserProvider>
         <ScrollRestoration />
         <Scripts />
@@ -50,10 +46,4 @@ export function Layout() {
 
 export default function App() {
   return <Outlet />;
-}
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await isAuthenticated(request);
-
-  return { user: user || null };
 }

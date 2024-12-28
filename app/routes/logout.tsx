@@ -1,18 +1,17 @@
-import { UserContext } from "@/providers/userContext";
 import { logoutAction } from "@/server/auth/auth.server";
-import { useEffect } from "react";
-import { redirect, LoaderFunctionArgs } from "@remix-run/node";
-import { useContext } from "react";
-
+import { LoaderFunctionArgs } from "@remix-run/node";
 export default function Logout() {
-  const { setUser } = useContext(UserContext);
-  useEffect(() => {
-    setUser(null);
-  }, [setUser]);
   return <div>Logout</div>;
 }
 
+// export async function loader({ request }: LoaderFunctionArgs) {
+//   await logoutAction(request);
+//   return "";
+// }
+
 export async function loader({ request }: LoaderFunctionArgs) {
-  await logoutAction(request);
-  return redirect("/login");
+  return await logoutAction(request, {
+    redirectTo: "/login",
+    headers: request.headers,
+  });
 }

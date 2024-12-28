@@ -1,13 +1,13 @@
 import db from "@/lib/db";
-import { JobStatus, JobType } from "@/lib/types";
+import { JobStatus } from "@/lib/types";
 import { emailOpenAiSetup } from "./emailOpenAiSetup.server";
 import { dataExtraction } from "./dataExtraction.server";
 import { rawToCompanyProfile } from "./rawToCompanyProfile.server";
 import s3 from "@/lib/s3";
 
-export const emailAnalysis = async (job: JobType) => {
-  console.log("emailAnalysis", job.jobId);
-  const jobId = job.jobId;
+export const emailAnalysis = async (jobId: string) => {
+  console.log("emailAnalysis", jobId);
+  const job = (await db.job.queryFromJobId(jobId))?.[0];
   if (!job) {
     console.log("No Job", jobId);
     return;

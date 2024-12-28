@@ -1,9 +1,9 @@
 import Search from "@/components/Search";
 import EmailPreview, { EmailPreviewProps } from "@/components/EmailPreview";
-import DocPreview, { DocPreviewProps } from "@/components/DocPreview";
-import { useEffect, useContext } from "react";
+import DocPreview from "@/components/DocPreview";
+import { useEffect, useContext, useState } from "react";
 import { UserContext } from "@/providers/userContext";
-import { useLoaderData } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -14,11 +14,16 @@ import { isAuthenticated } from "@/server/auth/auth.server";
 import { DialogLoadDocs } from "@/components/DialogLoadDocs";
 import db from "@/lib/db";
 import { JobType } from "@/lib/types";
+import s3 from "@/lib/s3";
+import DrawerDoc from "@/components/DrawerDoc";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { user, lastEmails, lastDocs, lastNotes, jobs } =
+  const { user, lastDocs, lastNotes, jobs, jobId } =
     useLoaderData<typeof loader>();
   const { setUser } = useContext(UserContext);
+  const [open, setOpen] = useState(false);
+  const [job, setJob] = useState<JobType | null>(null);
   useEffect(() => {
     setUser(user);
   }, [user, setUser]);
@@ -46,11 +51,16 @@ export default function Dashboard() {
                 }`}
                 numberOfDocs={job.fileUrls?.length || 0}
                 status={job.status}
-                title=""
-                summary=""
-                companyName=""
-                companyId=""
-                userCompanyId={user.companyId}
+                title={job.rawData?.product || "Processing.."}
+                summary={job.rawData?.solution || ""}
+                companyName={job.rawData?.company || ""}
+                companyId={job.emailId || ""}
+                fileUrls={job.fileUrls || []}
+                firmId={user.companyId}
+                onClick={() => {
+                  setOpen(true);
+                  setJob(job);
+                }}
               />
             ))
           ) : (
@@ -116,6 +126,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+      <DrawerDoc job={job} open={open} setOpen={setOpen} />
     </div>
   );
 }
@@ -123,25 +134,73 @@ export default function Dashboard() {
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await isAuthenticated(request);
   if (!user) {
+    console.log("redirecting to login");
     return redirect("/login");
   }
+
   const jobs = await db.job.getLatest(user.companyId, 5);
-  const lastEmails: EmailPreviewProps[] = [];
   const lastDocs: EmailPreviewProps[] = [];
   const lastNotes: EmailPreviewProps[] = [];
-  return { user, lastEmails, lastDocs, lastNotes, jobs };
+  const url = new URL(request.url);
+  const jobId = url.pathname.includes("/doc/")
+    ? url.pathname.split("/doc/")[1]
+    : null;
+  console.log("jobId", jobId);
+  return {
+    user,
+    jobs: jobs || [],
+    lastDocs,
+    lastNotes,
+    jobId,
+  };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const action = formData.get("action");
-  console.log("Action", action);
-  if (action === "remove") {
-    console.log("Removing job");
-    const companyId = formData.get("userCompanyId");
-    const createdAt = formData.get("createdAt");
-    console.log("Company ID", companyId);
-    await db.job.delete(companyId as string, createdAt as string);
+  try {
+    const formData = await request.formData();
+    const action = formData.get("action");
+    console.log("Action", action);
+
+    if (action === "remove") {
+      console.log("Removing job");
+      const companyId = formData.get("firmId");
+      const createdAt = formData.get("createdAt");
+      const fileUrlsStr = formData.get("fileUrls");
+
+      if (!companyId || !createdAt) {
+        throw new Error("Missing required fields");
+      }
+
+      let fileUrls: string[] = [];
+      if (typeof fileUrlsStr === "string") {
+        try {
+          fileUrls = JSON.parse(fileUrlsStr);
+        } catch {
+          fileUrls = [fileUrlsStr];
+        }
+      }
+
+      console.log("Processed fileUrls:", fileUrls);
+      console.log("Company ID", companyId);
+
+      // Process deletions sequentially and handle errors
+      for (const fileUrl of fileUrls) {
+        try {
+          await s3.docStoring.delete(fileUrl);
+        } catch (error) {
+          console.error(`Failed to delete file ${fileUrl}:`, error);
+        }
+      }
+
+      await db.job.delete(companyId.toString(), createdAt.toString());
+      return { success: true };
+    }
+    return { success: false, error: "Invalid action" };
+  } catch (error) {
+    console.error("Action error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
-  return null;
 }

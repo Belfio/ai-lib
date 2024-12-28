@@ -11,7 +11,7 @@ import {
 
 import Upload from "./Upload";
 import { useContext, useState } from "react";
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useNavigate } from "@remix-run/react";
 import { UserContext } from "@/providers/userContext";
 import primo from "@/lib/primoClient";
 
@@ -19,6 +19,7 @@ export function DialogLoadDocs() {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<FileList | null>(null);
   const fetcher = useFetcher();
+  const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const [uploading, setUploading] = useState(false);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,7 +39,7 @@ export function DialogLoadDocs() {
       fileUrls,
       folderId,
       userId: user?.PK || "unknownUser",
-      userCompanyId: user?.companyId || "unknownCompany",
+      firmId: user?.companyId || "unknownCompany",
       creator: {
         email: user.email,
         name: user.name,
@@ -48,6 +49,7 @@ export function DialogLoadDocs() {
     console.log("jobId", jobId);
     setUploading(false);
     setOpen(false);
+    navigate(`/dashboard`);
   };
 
   return (

@@ -28,11 +28,17 @@ export const fileDataExtraction = async (
       string
     >;
     for (const fileId of openAiSettings.fileIds) {
-      await oai.addMessageToThread(openAiSettings.threadId, "", fileId);
+      console.log("Adding message to thread", fileId);
+      await oai.addMessageToThread(
+        openAiSettings.threadId,
+        "Read this document, I'll ask you to extract information from this",
+        fileId
+      );
     }
 
     for (const [key, prompt] of Object.entries(prompts)) {
       try {
+        console.log("Querying based on the prompts", key);
         await oai.addMessageToThread(openAiSettings.threadId, prompt);
 
         const run = await oai.runAssistant(

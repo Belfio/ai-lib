@@ -145,25 +145,20 @@ const db = {
     create: async (job: JobType) => {
       await createItem(Resource.Jobs.name, job);
     },
-    get: async (
-      userCompanyId: string,
-      createdAt: string
-    ): Promise<JobType | null> => {
+    get: async (firmId: string, createdAt: string): Promise<JobType | null> => {
       const job = await getItem(Resource.Jobs.name, {
-        userCompanyId,
+        firmId,
         createdAt,
       });
+      console.log("Job from Dynamo?", job);
       return job as JobType | null;
     },
-    getLatest: async (
-      userCompanyId: string,
-      limit = 50
-    ): Promise<JobType[]> => {
+    getLatest: async (firmId: string, limit = 50): Promise<JobType[]> => {
       const command = new QueryCommand({
         TableName: Resource.Jobs.name,
-        KeyConditionExpression: "userCompanyId = :userCompanyId",
+        KeyConditionExpression: "firmId = :firmId",
         ExpressionAttributeValues: {
-          ":userCompanyId": userCompanyId,
+          ":firmId": firmId,
         },
         ScanIndexForward: false, // This will return items in descending order (newest first)
         Limit: limit,
@@ -190,10 +185,10 @@ const db = {
       );
       return jobs.items || [];
     },
-    delete: async (userCompanyId: string, createdAt: string) => {
-      console.log("Deleting job", userCompanyId, createdAt);
+    delete: async (firmId: string, createdAt: string) => {
+      console.log("Deleting job", firmId, createdAt);
       const res = await deleteItem(Resource.Jobs.name, {
-        userCompanyId,
+        firmId,
         createdAt,
       });
       console.log("Delete job response", res);
@@ -214,10 +209,10 @@ const getItem = async <T extends Record<string, any>>(
     },
   });
 
-  // // console.log("getItem", command);
+  // console.log("getItem", command);
 
   const data = await client.send(command);
-  // // console.log("getItem data", data);
+  // console.log("getItem data", data);
 
   if (!data.Item) return null;
   return data.Item;

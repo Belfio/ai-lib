@@ -39,12 +39,12 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "Emails",
-          url: "#emails",
+          title: "Documents",
+          url: "#documents",
         },
         {
-          title: "Docs",
-          url: "#docs",
+          title: "Emails",
+          url: "#emails",
         },
         {
           title: "Notes",
@@ -58,11 +58,19 @@ const data = {
       icon: Building,
       items: [
         {
-          title: "Recent",
+          title: "New opportunities",
           url: "#",
         },
         {
-          title: "Search",
+          title: "Under due diligence",
+          url: "#",
+        },
+        {
+          title: "Portfolio",
+          url: "#",
+        },
+        {
+          title: "All companies",
           url: "#",
         },
       ],
@@ -187,16 +195,20 @@ const data = {
   ],
 };
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  user: User;
+  user: User | null;
 };
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const userData = useMemo(() => {
+    if (!user) return null;
     return {
       name: user.name,
       email: user.email,
       avatar: user.profileImageUrl || "",
     };
   }, [user]);
+
+  if (!user) return null;
+
   return (
     <Sidebar variant="sidebar" {...props}>
       <SidebarHeader>
@@ -223,9 +235,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         {data.projects.length > 0 && <NavProjects projects={data.projects} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={userData} />
-      </SidebarFooter>
+      <SidebarFooter>{userData && <NavUser user={userData} />}</SidebarFooter>
     </Sidebar>
   );
 }

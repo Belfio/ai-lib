@@ -4,8 +4,8 @@ import { FormStrategy } from "remix-auth-form";
 import { User } from "@/lib/types";
 import { login, register } from "./login.server";
 import { isEmail, isPassword } from "@/lib/utils";
-import { commitSession, getSession } from "./session.server";
-import { redirect } from "@remix-run/node";
+import { commitSession, destroySession, getSession } from "./session.server";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 
 export const authenticator = new Authenticator<User | null | undefined>();
 // sessionStorage
@@ -81,39 +81,38 @@ authenticator.use(
 
 export async function loginAction(
   request: Request,
-  returnTo?: string
-): Promise<User | null> {
+  returnTo: string = "/dashboard"
+): Promise<Response> {
   console.log("authenticating");
   const user = await authenticator.authenticate("login", request);
-  console.log("user", user);
+
   const session = await getSession(request.headers.get("cookie"));
-  if (user) {
-    session.set("user", user);
-    return user;
+  if (!user) {
+    return redirect(`/login?${new URLSearchParams({ error: "nouser" })}`, {
+      headers: { "Set-Cookie": await commitSession(session) },
+    });
   }
-  if (returnTo) session.set("returnTo", returnTo);
-  throw redirect(`/login?${new URLSearchParams({ error: "nouser" })}`, {
+
+  session.set("user", user);
+  return redirect(returnTo, {
     headers: { "Set-Cookie": await commitSession(session) },
   });
 }
 
-export async function logoutAction(request: Request) {
-  const session = await getSession(request.headers.get("cookie"));
-  session.set("user", null);
-  console.log("logging out");
-  return redirect("/login", {
-    headers: { "Set-Cookie": await commitSession(session) },
-  });
-}
-
-export async function isAuthenticated(
-  request: Request,
-  returnTo?: string
-): Promise<User | null> {
+export async function isAuthenticated(request: Request): Promise<User | null> {
   console.log("checking the session");
   const session = await getSession(request.headers.get("cookie"));
   const user = session.get("user");
   if (user) return user;
-  if (returnTo) session.set("returnTo", returnTo);
   return null;
+}
+
+export async function logoutAction(
+  request: LoaderFunctionArgs["request"],
+  options: { redirectTo: string; headers: Headers }
+) {
+  const session = await getSession(request.headers.get("cookie"));
+  const headers = new Headers(options.headers);
+  headers.append("Set-Cookie", await destroySession(session));
+  throw redirect(options.redirectTo, { headers });
 }

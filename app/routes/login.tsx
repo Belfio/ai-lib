@@ -1,11 +1,8 @@
+import { LoginForm } from "@/components/LoginForm";
 import { UserContext } from "@/providers/userContext";
 import { isAuthenticated, loginAction } from "@/server/auth/auth.server";
-import {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  redirect,
-} from "@remix-run/node";
-import { Form, Link, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { useContext, useEffect } from "react";
 
 const messages = {
@@ -21,23 +18,18 @@ export default function Login() {
   const { error } = useLoaderData<typeof loader>();
   return (
     <>
-      <Form method="post">
-        <input type="email" name="email" />
-        <input type="password" name="password" />
-        <button type="submit">Login</button>
-        {error && <p>{error}</p>}
-      </Form>
-      <Link to="/signup">Signup</Link>
+      <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+        <div className="w-full max-w-sm md:max-w-3xl">
+          <LoginForm error={error} />
+        </div>
+      </div>
     </>
   );
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const user = await loginAction(request);
-  if (user) {
-    return redirect("/dashboard");
-  }
-  return { error: messages.default };
+  console.log("logging in please");
+  return await loginAction(request, "/dashboard");
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {

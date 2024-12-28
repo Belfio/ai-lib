@@ -14,11 +14,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const newJob: JobType = {
       jobId: uuidv4(),
       emailId: formData.folderId,
-      fileUrls: formData.fileUrls,
+      fileUrls: Array.isArray(formData.fileUrls)
+        ? formData.fileUrls
+        : [formData.fileUrls],
       status: JobStatus.PENDING,
       constIndex: "constIndex",
       type: JobFileType.FILE,
-      userCompanyId: formData.userCompanyId,
+      firmId: formData.firmId,
       createdAt: new Date().toISOString(),
       creator: formData.creator,
     };

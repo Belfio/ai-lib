@@ -78,7 +78,7 @@ export type JobType = {
   constIndex: "constIndex";
   rawData?: CompanyRawData;
   fileUrls?: string[];
-  userCompanyId: string;
+  firmId: string;
   createdAt: string;
   creator: {
     email: string;

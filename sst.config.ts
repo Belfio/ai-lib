@@ -41,35 +41,15 @@ export default $config({
       },
     });
 
-    const dbJobsDepr = new sst.aws.Dynamo("JobsTable", {
-      fields: {
-        emailId: "string",
-        id: "string",
-        constIndex: "string",
-      },
-      primaryIndex: {
-        hashKey: "id",
-      },
-      globalIndexes: {
-        EmailIndex: {
-          hashKey: "emailId",
-        },
-        ConstIndex: {
-          hashKey: "constIndex",
-        },
-      },
-      stream: "keys-only",
-    });
-
     const dbJobs = new sst.aws.Dynamo("Jobs", {
       fields: {
         emailId: "string",
         jobId: "string",
-        userCompanyId: "string",
+        firmId: "string",
         createdAt: "string",
       },
       primaryIndex: {
-        hashKey: "userCompanyId",
+        hashKey: "firmId",
         rangeKey: "createdAt",
       },
       globalIndexes: {
@@ -97,16 +77,54 @@ export default $config({
       },
     });
 
-    dbJobs.subscribe("jobSubscriber", {
-      link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
-      handler: "app/server/subscribers/jobSubscriber.handler",
+    const deadLetterQueue = new sst.aws.Queue("DeadLetterQueue");
+    const dataPorcessingQueue = new sst.aws.Queue("DataProcessingQueue", {
+      dlq: {
+        retry: 1,
+        queue: deadLetterQueue.arn,
+      },
+      visibilityTimeout: "10 minutes",
+    });
+    dataPorcessingQueue.subscribe({
+      handler: "app/server/subscribers/jobQueue.handler",
       timeout: "10 minutes",
+      link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
         OPENAI_ORG: process.env.OPENAI_ORG ?? "",
         OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
       },
     });
+
+    dbJobs.subscribe("jobSubscriber", {
+      link: [
+        bucketDocStoring,
+        dbEmail,
+        dbCompanyProfile,
+        dbJobs,
+        dataPorcessingQueue,
+      ],
+      handler: "app/server/subscribers/jobSubscriber.handler",
+      timeout: "1 minutes",
+      environment: {
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
+        OPENAI_ORG: process.env.OPENAI_ORG ?? "",
+        OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+      },
+    });
+
+    // dataPorcessingQueue.subscribe("jobSubscriber", {
+    //   link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
+    //   handler: "app/server/subscribers/jobSubscriber.handler",
+    //   timeout: "10 minutes",
+    //   environment: {
+    //     OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
+    //     OPENAI_ORG: process.env.OPENAI_ORG ?? "",
+    //     OPENAI_PROJECT: process.env.OPENAI_PROJECT ?? "",
+    //   },
+    // });
+
+    //dbJobsDepr.subscribe("EmailSubscriber", {
     // dbJobs.subscribe("EmailSubscriber", {
     //   link: [bucketDocStoring, dbEmail, dbCompanyProfile, dbJobs],
     //   handler: "app/server/emailSubscriber.handler",
