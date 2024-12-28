@@ -26,30 +26,18 @@ export default function DrawerDoc({
       <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
-            <DrawerTitle>{job?.jobId}</DrawerTitle>
-            <DrawerDescription>Set your daily activity goal.</DrawerDescription>
+            <DrawerTitle>Document analysis</DrawerTitle>
+            <DrawerDescription>Find the analysis process.</DrawerDescription>
           </DrawerHeader>
           <div className="p-4 pb-0">
-            <div className="flex items-center justify-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-              >
-                <span className="sr-only">Decrease</span>
-              </Button>
-              <div className="flex-1 text-center">
-                <div className="text-[0.70rem] uppercase text-muted-foreground">
-                  Calories/day
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-              >
-                <span className="sr-only">Increase</span>
-              </Button>
+            <div className="flex flex-col items-center justify-center space-x-2">
+              <p>Process</p>
+              <p>Data uploading</p>
+              <p>Information extraction</p>
+              <p>Vector database creation</p>
+              <p>Model training</p>
+              <p>Model evaluation</p>
+              <p>Model deployment</p>
             </div>
           </div>
           <DrawerFooter>

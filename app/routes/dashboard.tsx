@@ -1,8 +1,7 @@
 import Search from "@/components/Search";
 import EmailPreview, { EmailPreviewProps } from "@/components/EmailPreview";
 import DocPreview from "@/components/DocPreview";
-import { useEffect, useContext, useState } from "react";
-import { UserContext } from "@/providers/userContext";
+import { useState } from "react";
 import { useLoaderData } from "@remix-run/react";
 import {
   ActionFunctionArgs,
@@ -18,13 +17,10 @@ import s3 from "@/lib/s3";
 import DrawerDoc from "@/components/DrawerDoc";
 
 export default function Dashboard() {
-  const { user, lastDocs, jobs, lastEmails } = useLoaderData<typeof loader>();
-  const { setUser } = useContext(UserContext);
+  const { lastDocs, jobs, lastEmails } = useLoaderData<typeof loader>();
+
   const [open, setOpen] = useState(false);
   const [job, setJob] = useState<JobType | null>(null);
-  useEffect(() => {
-    setUser(user);
-  }, [user, setUser]);
 
   return (
     <div className="justify-start items-center w-full h-full p-6 flex flex-col gap-6 md:min-w-[800px] md:max-w-[1024px]">

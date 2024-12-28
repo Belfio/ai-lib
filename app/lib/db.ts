@@ -125,29 +125,26 @@ const db = {
   },
   companyProfile: {
     create: async (profile: CompanyProfile) => {
-      const response = await createItem(
-        Resource.CompanyProfileTable.name,
-        profile
-      );
+      const response = await createItem(Resource.CompanyProfile.name, profile);
       if (!response.isSuccess) {
         throw new Error(`Error creating CompanyProfile: ${response.msg}`);
       }
       return response;
     },
     get: async (profileId: string): Promise<CompanyProfile | null> => {
-      const profile = await getItem(Resource.CompanyProfileTable.name, {
+      const profile = await getItem(Resource.CompanyProfile.name, {
         profileId,
       });
       return profile as CompanyProfile | null;
     },
     delete: async (profileId: string) => {
-      await deleteItem(Resource.CompanyProfileTable.name, {
+      await deleteItem(Resource.CompanyProfile.name, {
         profileId,
       });
     },
     getAll: async (firmId: string): Promise<CompanyProfile[]> => {
       const profiles = await queryItems(
-        Resource.CompanyProfileTable.name,
+        Resource.CompanyProfile.name,
         "FirmIndex",
         "firmId",
         firmId

@@ -6,7 +6,9 @@ import { UserContext } from "@/providers/userContext";
 
 export default function LayoutDashboard() {
   const { user } = useContext(UserContext);
+
   const isLoggedIn = user !== null;
+
   if (isLoggedIn) {
     return (
       <SidebarProvider

@@ -90,6 +90,7 @@ export type JobType = {
     companyName: string;
     companyId: string;
   };
+  processPhase?: string;
 };
 
 export interface ResponseType {

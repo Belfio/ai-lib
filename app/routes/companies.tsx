@@ -22,8 +22,11 @@ export default function Companies() {
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await isAuthenticated(request);
   if (!user) {
+    console.log("redirecting to login");
     return redirect("/login");
   }
+  console.log("user", user);
   const companies = await db.companyProfile.getAll(user.companyId);
+  console.log("companies", companies);
   return Response.json({ companies });
 }

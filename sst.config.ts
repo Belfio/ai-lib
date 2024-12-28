@@ -62,7 +62,7 @@ export default $config({
       },
       stream: "keys-only",
     });
-    const dbCompanyProfile = new sst.aws.Dynamo("CompanyProfileTable", {
+    const dbCompanyProfile = new sst.aws.Dynamo("CompanyProfile", {
       fields: {
         profileId: "string",
         constIndex: "string",
@@ -155,10 +155,10 @@ export default $config({
         bucketDocStoring,
         dbEmail,
         dbJobs,
-        dbCompanyProfile,
         email,
         dbCompany,
         dbUser,
+        dbCompanyProfile,
       ],
       environment: {
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",

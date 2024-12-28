@@ -9,8 +9,14 @@ export const UserContext = createContext<{
   setUser: () => {},
 });
 
-export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function UserProvider({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser: User | null;
+}) {
+  const [user, setUser] = useState<User | null>(initialUser);
 
   return (
     <UserContext.Provider

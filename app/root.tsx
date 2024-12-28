@@ -1,15 +1,16 @@
 import {
   Links,
   Meta,
-  Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 
 import "./tailwind.css";
 import LayoutDashboard from "./components/LayoutDashboard";
 import { UserProvider } from "./providers/userContext";
+import { isAuthenticated } from "./server/auth/auth.server";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -24,26 +25,28 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export function Layout() {
+export default function App() {
+  const data = useLoaderData<typeof loader>();
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <UserProvider>
+    <UserProvider initialUser={data.user}>
+      <html lang="en">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body>
           <LayoutDashboard />
-        </UserProvider>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    </UserProvider>
   );
 }
 
-export default function App() {
-  return <Outlet />;
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await isAuthenticated(request);
+  return Response.json({ user });
 }
