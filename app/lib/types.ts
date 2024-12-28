@@ -90,7 +90,25 @@ export type JobType = {
     companyName: string;
     companyId: string;
   };
-  processPhase?: string;
+  processPhase?: ProcessPhase;
+};
+
+export enum ProcessPhase {
+  DATA_UPLOADING = 1,
+  INFORMATION_EXTRACTION = 2,
+  VECTOR_DATABASE_CREATION = 3,
+  MODEL_TRAINING = 4,
+  MODEL_EVALUATION = 5,
+  MODEL_DEPLOYMENT = 6,
+}
+
+export const ProcessPhaseSentence = {
+  [ProcessPhase.DATA_UPLOADING]: "Data uploading",
+  [ProcessPhase.INFORMATION_EXTRACTION]: "Information extraction",
+  [ProcessPhase.VECTOR_DATABASE_CREATION]: "Vector database creation",
+  [ProcessPhase.MODEL_TRAINING]: "Model training",
+  [ProcessPhase.MODEL_EVALUATION]: "Model evaluation",
+  [ProcessPhase.MODEL_DEPLOYMENT]: "Model deployment",
 };
 
 export interface ResponseType {
